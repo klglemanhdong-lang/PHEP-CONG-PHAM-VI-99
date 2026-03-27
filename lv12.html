@@ -5,101 +5,162 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Level 12: Thunderbolt Storm - LÊ MẠNH ĐÔNG</title>
     <style>
-        /* ĐỔI TÔNG MÀU SANG XANH CYAN ĐIỆN TỬ */
-        :root { --radar-color: #00f2ff; --bg-dark: #00080a; --gold: #ffd700; --heart: #ff4d4d; --lightning: #fff; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Share Tech Mono', monospace; overflow: hidden; color: var(--radar-color); }
-
-        #game-frame {
-            width: 100vw; height: 100vh; max-width: 430px; max-height: 900px;
-            background: var(--bg-dark); position: relative; overflow: hidden; display: flex; flex-direction: column;
-            border: 4px solid #111; border-radius: 40px;
+        :root { 
+            --radar-color: #00f2ff; 
+            --bg-dark: #000a0f; 
+            --gold: #ffd700; 
+            --heart: #ff4d4d; 
+            --lightning: #fff; 
         }
 
-        #top-bar { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.9); z-index: 100; border-bottom: 1px solid var(--radar-color); }
-        .profile { display: flex; align-items: center; gap: 12px; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            margin: 0; padding: 0; 
+            user-select: none;
+        }
+
+        body { 
+            background: #000; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            font-family: 'Share Tech Mono', monospace; 
+            overflow: hidden; 
+            color: var(--radar-color); 
+        }
+
+        #game-frame {
+            width: 100vw; 
+            height: 100vh; 
+            max-width: 430px; 
+            max-height: 932px; /* iPhone 14/15 Pro Max height */
+            background: var(--bg-dark); 
+            position: relative; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column;
+            border: 2px solid #222;
+        }
+
+        /* TOP BAR GỌN GÀNG */
+        #top-bar { 
+            height: 70px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 15px; 
+            background: rgba(0,0,0,0.9); 
+            z-index: 100; 
+            border-bottom: 1px solid var(--radar-color); 
+        }
+        .profile { display: flex; align-items: center; gap: 10px; }
         .avatar { 
-            width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--radar-color); 
+            width: 40px; height: 40px; 
+            border-radius: 50%; 
+            border: 2px solid var(--radar-color); 
             background: url('avatar.jpg') center/cover; 
             box-shadow: 0 0 10px var(--radar-color);
         }
-        .admin-name { font-weight: bold; font-size: 14px; color: var(--radar-color); }
-        .hearts { color: var(--heart); font-size: 20px; }
+        .admin-name { font-weight: bold; font-size: 13px; letter-spacing: 1px; }
+        .hearts { color: var(--heart); font-size: 18px; letter-spacing: 2px; }
 
-        #progress-bar { position: absolute; top: 80px; width: 100%; height: 5px; background: #111; z-index: 90; }
-        #progress-fill { width: 0%; height: 100%; background: var(--gold); transition: width 0.3s; }
+        /* TIẾN TRÌNH */
+        #progress-bar { width: 100%; height: 4px; background: #111; }
+        #progress-fill { width: 0%; height: 100%; background: var(--gold); transition: width 0.3s; box-shadow: 0 0 10px var(--gold); }
 
-        #play-area { flex-grow: 1; position: relative; z-index: 10; display: flex; justify-content: center; align-items: center; }
-        
-        /* PHÉP TÍNH: ĐÃ ĐƯA VÀO TÂM RADAR */
-        #vertical-math {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); /* Giữa tâm tuyệt đối */
-            display: flex; flex-direction: column; align-items: flex-end;
-            color: #fff; font-size: 48px; font-weight: 900; line-height: 1.1;
-            text-shadow: 0 0 10px var(--radar-color), 0 0 20px #000;
-            z-index: 50; pointer-events: none;
+        /* KHU VỰC CHƠI TỐI ƯU TÂM */
+        #play-area { 
+            flex-grow: 1; 
+            position: relative; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding-bottom: 50px; /* Chừa chỗ cho launcher */
         }
-        .math-container { position: relative; padding: 10px; width: fit-content; }
-        .math-line { border-bottom: 5px solid #fff; margin-top: 5px; width: 120%; margin-left: -20%; }
-        .math-sign { position: absolute; left: -40px; bottom: 20px; font-size: 40px; }
 
         #radar-screen {
-            width: 320px; height: 320px; border: 2px solid var(--radar-color);
-            border-radius: 50%; position: relative;
+            width: 85vw; 
+            height: 85vw; 
+            max-width: 340px; 
+            max-height: 340px;
+            border: 2px solid var(--radar-color);
+            border-radius: 50%; 
+            position: relative;
             background: 
-                repeating-radial-gradient(circle, transparent 0, transparent 39px, rgba(0,242,255,0.1) 40px),
-                linear-gradient(90deg, transparent 49.5%, rgba(0,242,255,0.2) 50%, transparent 50.5%),
-                linear-gradient(0deg, transparent 49.5%, rgba(0,242,255,0.2) 50%, transparent 50.5%);
-            box-shadow: inset 0 0 30px rgba(0,242,255,0.1);
+                repeating-radial-gradient(circle, transparent 0, transparent 39px, rgba(0,242,255,0.05) 40px),
+                linear-gradient(90deg, transparent 49.5%, rgba(0,242,255,0.1) 50%, transparent 50.5%),
+                linear-gradient(0deg, transparent 49.5%, rgba(0,242,255,0.1) 50%, transparent 50.5%);
         }
+
+        /* PHÉP TÍNH CHÍNH GIỮA */
+        #vertical-math {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex; flex-direction: column; align-items: flex-end;
+            color: #fff; font-size: 50px; font-weight: 900;
+            text-shadow: 0 0 15px var(--radar-color);
+            z-index: 50; pointer-events: none;
+        }
+        .math-line { border-bottom: 4px solid #fff; width: 120%; margin-top: 5px; }
+        .math-sign { position: absolute; left: -45px; bottom: 10px; font-size: 35px; }
 
         #radar-sweep {
             position: absolute; width: 50%; height: 50%; top: 0; left: 50%;
-            background: linear-gradient(0deg, transparent, rgba(0,242,255,0.5));
-            transform-origin: bottom left; animation: sweep 2.5s linear infinite;
+            background: linear-gradient(0deg, transparent, rgba(0,242,255,0.4));
+            transform-origin: bottom left; animation: sweep 2s linear infinite;
             border-left: 1px solid var(--radar-color); z-index: 5;
         }
         @keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+        /* ĐÁP ÁN - CLICK DỄ DÀNG TRÊN MOBILE */
         .target-node {
             position: absolute; width: 75px; height: 75px;
             border: 2px solid var(--radar-color); border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            font-size: 28px; font-weight: bold; cursor: pointer;
-            background: rgba(0,8,10,0.9); z-index: 60;
-            transition: all 0.2s; color: var(--radar-color);
+            font-size: 26px; font-weight: bold; cursor: pointer;
+            background: rgba(0,10,15,0.9); z-index: 70;
+            color: var(--radar-color);
+            transition: transform 0.1s;
+            box-shadow: 0 0 15px rgba(0,242,255,0.2);
         }
-        /* VỊ TRÍ ĐÁP ÁN ĐÃ KHÓA CHẶT */
-        #ans-0 { top: -45px; left: 50%; transform: translateX(-50%); } 
-        #ans-1 { bottom: -15px; left: 85%; } 
-        #ans-2 { bottom: -15px; right: 85%; } 
+        .target-node:active { transform: scale(0.9); }
+        
+        /* CỐ ĐỊNH VỊ TRÍ KHUNG */
+        #ans-0 { top: -40px; left: 50%; transform: translateX(-50%); } 
+        #ans-1 { bottom: -10px; right: -10px; } 
+        #ans-2 { bottom: -10px; left: -10px; } 
 
-        .target-node.hit {
-            background: var(--lightning) !important; border-color: var(--gold) !important;
-            color: #000 !important; box-shadow: 0 0 50px var(--gold); transform: scale(1.2);
-        }
-        #ans-0.hit { transform: translateX(-50%) scale(1.2) !important; }
+        .target-node.hit { background: var(--lightning) !important; color: #000 !important; box-shadow: 0 0 40px var(--gold); border-color: var(--gold) !important; }
         .target-node.wrong { background: rgba(255, 77, 77, 0.4) !important; border-color: var(--heart) !important; }
 
         #launcher {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 70px; height: 50px; border: 3px solid var(--radar-color);
+            position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
+            width: 60px; height: 40px; border: 2px solid var(--radar-color);
             background: repeating-linear-gradient(0deg, #111, #111 2px, var(--radar-color) 3px);
-            border-radius: 10px 10px 0 0; z-index: 30; display: flex; justify-content: center;
+            border-radius: 8px 8px 0 0; z-index: 30;
         }
-        #launcher-tip { width: 14px; height: 22px; background: var(--lightning); transform: translateY(-12px); border-radius: 5px; box-shadow: 0 0 25px var(--lightning); }
 
-        #lightning-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; display: none; }
-        #lightning-path { stroke: var(--gold); stroke-width: 10; fill: none; stroke-linecap: round; filter: blur(1px); }
-        #lightning-path-inner { stroke: #fff; stroke-width: 4; fill: none; }
+        #lightning-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 80; display: none; }
+        #lightning-path { stroke: var(--gold); stroke-width: 8; fill: none; filter: blur(1px); }
+        #lightning-path-inner { stroke: #fff; stroke-width: 3; fill: none; }
 
-        #control-panel { background: #000; padding: 20px; border-top: 1px solid var(--radar-color); }
-        #timer-bar { width: 100%; height: 12px; background: #111; border-radius: 6px; overflow: hidden; }
-        #timer-fill { width: 100%; height: 100%; background: var(--radar-color); transition: width 0.1s linear; }
+        #control-panel { padding: 15px; background: #000; border-top: 1px solid var(--radar-color); }
+        #timer-bar { width: 100%; height: 10px; background: #111; border-radius: 5px; overflow: hidden; }
+        #timer-fill { width: 100%; height: 100%; background: var(--radar-color); }
 
-        .overlay { position: absolute; inset: 0; background: rgba(0,8,10,0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; text-align: center; padding: 20px; }
-        .btn-main { background: var(--radar-color); color: black; border: none; padding: 18px 50px; font-weight: 900; cursor: pointer; font-family: inherit; font-size: 20px; border-radius: 5px; text-transform: uppercase; }
+        .overlay { 
+            position: absolute; inset: 0; background: rgba(0,10,15,0.98); 
+            display: flex; flex-direction: column; justify-content: center; 
+            align-items: center; z-index: 1000; text-align: center; padding: 30px; 
+        }
+        .btn-main { 
+            background: var(--radar-color); color: #000; border: none; 
+            padding: 15px 40px; font-weight: 900; font-size: 18px; 
+            border-radius: 50px; text-transform: uppercase; margin-top: 20px;
+            box-shadow: 0 0 20px var(--radar-color);
+        }
     </style>
 </head>
 <body>
@@ -122,24 +183,19 @@
 
     <div id="play-area">
         <div id="radar-screen">
-            <!-- PHÉP TÍNH Ở TRONG TÂM RADAR -->
             <div id="vertical-math">
-                <div class="math-container">
-                    <div id="num1">--</div>
-                    <div id="num2">--</div>
-                    <div class="math-sign">+</div>
-                    <div class="math-line"></div>
-                </div>
+                <div id="num1">--</div>
+                <div id="num2">--</div>
+                <div class="math-sign">+</div>
+                <div class="math-line"></div>
             </div>
-
             <div id="radar-sweep"></div>
             <div id="ans-0" class="target-node"></div>
             <div id="ans-1" class="target-node"></div>
             <div id="ans-2" class="target-node"></div>
         </div>
-        
-        <div id="launcher"><div id="launcher-tip"></div></div>
-        <svg id="lightning-svg" viewBox="0 0 430 900">
+        <div id="launcher"></div>
+        <svg id="lightning-svg" viewBox="0 0 430 932" preserveAspectRatio="none">
             <path id="lightning-path" d="" />
             <path id="lightning-path-inner" d="" />
         </svg>
@@ -149,21 +205,20 @@
 
     <!-- MODALS -->
     <div id="modal-start" class="overlay">
-        <h1 style="font-size: 36px; color: var(--radar-color); margin-bottom: 10px;">LEVEL 12</h1>
-        <h2 style="color: var(--gold); margin-bottom: 20px;">THUNDERBOLT STORM</h2>
-        <p style="color: #fff; margin-bottom: 30px;">20 NHIỆM VỤ | TỔNG CẬN 99</p>
-        <button class="btn-main" onclick="initGame()">BẮT ĐẦU CÔNG PHÁ</button>
+        <h1 style="color: var(--radar-color); font-size: 40px;">LEVEL 12</h1>
+        <p style="color: #fff; margin-top: 10px; letter-spacing: 2px;">THUNDERBOLT STORM</p>
+        <button class="btn-main" onclick="initGame()">KÍCH HOẠT</button>
     </div>
 
     <div id="modal-win" class="overlay" style="display:none">
-        <h1 style="color: var(--gold); font-size: 35px;">NHIỆM VỤ HOÀN THÀNH!</h1>
-        <p style="margin: 20px 0; font-size: 18px;">Bạn là bậc thầy Radar!</p>
-        <button class="btn-main" onclick="nextLevel()">TIẾP THEO</button>
+        <h1 style="color: var(--gold); font-size: 30px;">HOÀN THÀNH XUẤT SẮC!</h1>
+        <p style="color: #fff; margin-top: 10px;">Hệ thống đã được khôi phục.</p>
+        <button class="btn-main" onclick="goToIndex()">VỀ TRANG CHỦ</button>
     </div>
 
     <div id="modal-lose" class="overlay" style="display:none">
-        <h1 style="color: var(--heart); font-size: 35px;">HỆ THỐNG SỤP ĐỔ</h1>
-        <button class="btn-main" style="margin-top:20px" onclick="location.reload()">KHỞI ĐỘNG LẠI</button>
+        <h1 style="color: var(--heart);">HỆ THỐNG LỖI</h1>
+        <button class="btn-main" onclick="location.reload()">REBOOT</button>
     </div>
 </div>
 
@@ -172,39 +227,47 @@
     let questionBank = [];
     const totalQuestions = 20;
 
-    document.addEventListener('keydown', (e) => {
-        if (!gameActive) return;
-        if (e.key.toLowerCase() === 't') victory();
-        if (e.key.toLowerCase() === 'l') gameOver();
-    });
-
     function playSnd(id) { 
         const s = document.getElementById(id); 
         if(s) { s.currentTime = 0; s.play().catch(()=>{}); } 
     }
 
     function prepareQuestions() {
-        let poolNormal = [], poolUltra = [];
-        for (let i = 20; i <= 89; i++) {
-            for (let j = 10; j <= 79; j++) {
-                let sum = i + j;
-                if (i % 10 + j % 10 <= 9) {
-                    if (sum >= 50 && sum <= 89) poolNormal.push({ n1: i, n2: j, ans: sum });
-                    if (sum >= 90 && sum <= 99) poolUltra.push({ n1: i, n2: j, ans: sum });
+        let poolNormal = []; // 50-89
+        let poolHard = [];   // 90-99
+        
+        // Tạo tất cả phép cộng không nhớ trong dải 50-99
+        for (let i = 10; i <= 89; i++) {
+            for (let j = 10; j <= 89; j++) {
+                // Kiểm tra nguyên tắc "Không nhớ": tổng hàng đơn vị <= 9, tổng hàng chục <= 9
+                if ((i % 10 + j % 10 <= 9) && (Math.floor(i / 10) + Math.floor(j / 10) <= 9)) {
+                    let sum = i + j;
+                    if (sum >= 50 && sum <= 89) {
+                        poolNormal.push({ n1: i, n2: j, ans: sum });
+                    } else if (sum >= 90 && sum <= 99) {
+                        poolHard.push({ n1: i, n2: j, ans: sum });
+                    }
                 }
             }
         }
+        
+        // Xáo trộn ngẫu nhiên
         poolNormal.sort(() => Math.random() - 0.5);
-        poolUltra.sort(() => Math.random() - 0.5);
-        questionBank = [...poolNormal.slice(0, 15), ...poolUltra.slice(0, 5)];
+        poolHard.sort(() => Math.random() - 0.5);
+        
+        // Lấy chính xác 10 câu dễ (50-89) và 10 câu khó (90-99)
+        let selection = [...poolNormal.slice(0, 10), ...poolHard.slice(0, 10)];
+        
+        // Xáo trộn lại thứ tự xuất hiện của 20 câu này
+        questionBank = selection.sort(() => Math.random() - 0.5);
     }
 
     function initGame() {
         prepareQuestions();
         document.getElementById('modal-start').style.display = 'none';
         gameActive = true;
-        const bg = document.getElementById('audio-bg-2');
-        bg.volume = 0.1; bg.play().catch(()=>{});
+        document.getElementById('audio-bg-2').volume = 0.2;
+        document.getElementById('audio-bg-2').play().catch(()=>{});
         newLevel();
         startTimer();
     }
@@ -221,7 +284,7 @@
         for(let i=0; i<3; i++) {
             const el = document.getElementById(`ans-${i}`);
             el.innerText = answers[i];
-            el.classList.remove('hit', 'wrong');
+            el.className = 'target-node';
             el.style.opacity = "1";
             el.onclick = (e) => fireLightning(e, answers[i]);
         }
@@ -231,40 +294,41 @@
     function fireLightning(e, val) {
         if (!gameActive) return;
         const target = e.currentTarget;
-        const svg = document.getElementById('lightning-svg');
-        
         if (val === currentAns) {
             gameActive = false;
             playSnd('audio-dung');
-            const frameRect = document.getElementById('game-frame').getBoundingClientRect();
-            const launchRect = document.getElementById('launcher-tip').getBoundingClientRect();
-            const targetRect = target.getBoundingClientRect();
             
-            const sX = launchRect.left + launchRect.width / 2 - frameRect.left;
-            const sY = launchRect.top - frameRect.top;
-            const eX = targetRect.left + targetRect.width / 2 - frameRect.left;
-            const eY = targetRect.top + targetRect.height / 2 - frameRect.top;
+            const svg = document.getElementById('lightning-svg');
+            const frame = document.getElementById('game-frame').getBoundingClientRect();
+            const launch = document.getElementById('launcher').getBoundingClientRect();
+            const dest = target.getBoundingClientRect();
+            
+            const x1 = launch.left + launch.width/2 - frame.left;
+            const y1 = launch.top - frame.top;
+            const x2 = dest.left + dest.width/2 - frame.left;
+            const y2 = dest.top + dest.height/2 - frame.top;
 
-            let d = `M ${sX} ${sY}`;
-            for(let i=1; i<=10; i++) {
-                d += ` L ${sX + (eX-sX)*i/10 + (Math.random()-0.5)*50} ${sY + (eY-sY)*i/10 + (Math.random()-0.5)*25}`;
+            let d = `M ${x1} ${y1}`;
+            for(let i=1; i<10; i++) {
+                d += ` L ${x1 + (x2-x1)*i/10 + (Math.random()-0.5)*40} ${y1 + (y2-y1)*i/10 + (Math.random()-0.5)*20}`;
             }
-            d += ` L ${eX} ${eY}`;
+            d += ` L ${x2} ${y2}`;
             
             document.getElementById('lightning-path').setAttribute('d', d);
             document.getElementById('lightning-path-inner').setAttribute('d', d);
-            svg.style.display = "block";
+            svg.style.display = 'block';
             target.classList.add('hit');
 
             setTimeout(() => {
-                svg.style.display = "none";
-                target.style.opacity = "0";
+                svg.style.display = 'none';
                 count++;
                 gameActive = true;
                 newLevel();
-            }, 500);
+            }, 400);
         } else {
-            lives--; playSnd('audio-sai'); updateHearts();
+            lives--; 
+            playSnd('audio-sai'); 
+            updateHearts();
             target.classList.add('wrong');
             if (lives <= 0) gameOver();
         }
@@ -274,7 +338,7 @@
         if (timerId) clearInterval(timerId);
         timerId = setInterval(() => {
             if (!gameActive) return;
-            timerWidth -= (count > 15 ? 0.8 : 0.6); 
+            timerWidth -= (count > 10 ? 0.9 : 0.7); 
             document.getElementById('timer-fill').style.width = timerWidth + "%";
             if (timerWidth <= 0) {
                 lives--; updateHearts(); playSnd('audio-sai');
@@ -286,7 +350,7 @@
     function updateHearts() { document.getElementById('heart-box').innerText = "❤️".repeat(lives); }
     function victory() { gameActive = false; clearInterval(timerId); playSnd('audio-win'); document.getElementById('modal-win').style.display = 'flex'; }
     function gameOver() { gameActive = false; clearInterval(timerId); document.getElementById('modal-lose').style.display = 'flex'; }
-    function nextLevel() { window.location.href = "level13.html"; }
+    function goToIndex() { window.location.href = "index.html"; }
 </script>
 </body>
 </html>
