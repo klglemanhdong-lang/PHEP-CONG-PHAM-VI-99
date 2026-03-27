@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Level 3: Space Jump - LÊ MẠNH ĐÔNG</title>
+    <style>
+        :root {
+            --neon-purple: #bc13fe;
+            --neon-gold: #ffdb58;
+            --space-black: #050505;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        body {
+            margin: 0; padding: 0; background: var(--space-black);
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; font-family: 'Segoe UI', Arial, sans-serif;
+            overflow: hidden; color: white;
+        }
+
+        #game-frame {
+            width: 100vw; height: 100vh;
+            max-width: 430px; max-height: 900px;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #050505 100%);
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
+            border: 4px solid #222; border-radius: 40px;
+        }
+
+        /* --- TOP BAR (CỐ ĐỊNH) --- */
+        #top-bar { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 20px; z-index: 100; }
+        .profile { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: url('avatar.jpg') no-repeat center; background-size: cover; border: 2px solid var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple); }
+        .admin-name { font-weight: 900; color: white; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .status-info { text-align: right; }
+        .lives { font-size: 18px; margin-bottom: 2px; }
+        .score-board { font-weight: bold; font-size: 14px; color: var(--neon-gold); text-shadow: 0 0 5px var(--neon-gold); }
+
+        /* --- GAME WORLD --- */
+        #world { flex-grow: 1; position: relative; }
+        .planet { 
+            position: absolute; width: 55px; height: 55px; 
+            border-radius: 50%; box-shadow: inset -8px -8px 15px rgba(0,0,0,0.6);
+            transition: 0.5s; z-index: 5;
+        }
+        #hero { 
+            position: absolute; width: 60px; height: 60px; font-size: 45px; 
+            z-index: 50; text-align: center; line-height: 60px; 
+            transition: all 0.7s cubic-bezier(0.5, 0, 0.5, 1.2);
+        }
+
+        /* HIỆU ỨNG CỘNG ĐIỂM + NGÔI SAO */
+        .score-popup {
+            position: absolute; color: var(--neon-gold);
+            font-weight: 900; font-size: 26px;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 100; pointer-events: none; text-shadow: 0 0 10px black;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-70px); opacity: 0; }
+        }
+
+        .star-particle {
+            position: absolute; color: var(--neon-gold);
+            font-size: 14px; pointer-events: none; z-index: 60;
+            animation: explode 0.8s ease-out forwards;
+        }
+        @keyframes explode {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* --- CONTROL PANEL --- */
+        #control-panel { background: rgba(0,0,0,0.5); backdrop-filter: blur(15px); padding: 20px; border-top: 2px solid var(--neon-purple); }
+        #timer-progress { height: 8px; background: linear-gradient(90deg, var(--neon-purple), #00d2ff); width: 100%; border-radius: 10px; margin-bottom: 15px; }
+        #question-card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; text-align: center; border: 1px solid var(--neon-purple); }
+        #math-quest { font-size: 48px; font-weight: 900; margin: 0; text-shadow: 0 0 15px var(--neon-purple); }
+
+        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .math-btn { aspect-ratio: 1/1; border: none; border-radius: 20px; background: #1a1a1a; color: white; font-size: 32px; font-weight: bold; border: 1px solid #333; cursor: pointer; transition: 0.2s; }
+        .math-btn:active { background: var(--neon-purple); transform: scale(0.9); }
+
+        /* MODALS */
+        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; justify-content: center; align-items: center; }
+        .game-modal { width: 80%; background: #111; border: 2px solid var(--neon-purple); border-radius: 30px; padding: 30px; text-align: center; }
+        .btn-action { background: var(--neon-purple); color: white; border: none; padding: 12px 35px; font-size: 18px; font-weight: bold; border-radius: 50px; cursor: pointer; margin-top: 20px; }
+
+        #start-overlay { position: absolute; inset: 0; background: var(--space-black); z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    </style>
+</head>
+<body>
+
+<!-- AUDIO CỐ ĐỊNH -->
+<audio id="audio-bg" src="nhac-nen.mp3" loop></audio>
+<audio id="audio-dung" src="dung.mp3"></audio>
+<audio id="audio-sai" src="sai.mp3"></audio>
+<audio id="audio-win" src="chien-thang.mp3"></audio>
+
+<div id="game-frame">
+    <div id="top-bar">
+        <div class="profile">
+            <div class="avatar"></div>
+            <div class="admin-name">LÊ MẠNH ĐÔNG</div>
+        </div>
+        <div class="status-info">
+            <div class="lives" id="lives-container">❤️❤️❤️</div>
+            <div class="score-board">SCORE: <span id="score-val">0</span></div>
+        </div>
+    </div>
+
+    <div id="world"><div id="hero">👨‍🚀</div></div>
+
+    <div id="control-panel">
+        <div id="timer-progress"></div>
+        <div id="question-card"><h2 id="math-quest"></h2></div>
+        <div class="btn-grid">
+            <button class="math-btn" onclick="handleTap(this)"></button>
+            <button class="math-btn" onclick="handleTap(this)"></button>
+            <button class="math-btn" onclick="handleTap(this)"></button>
+        </div>
+    </div>
+
+    <div id="start-overlay">
+        <h1 style="color: var(--neon-purple); font-size: 40px; margin-bottom: 10px;">LEVEL 3</h1>
+        <p style="color: #aaa; margin-bottom: 25px;">Phạm vi 20 - Vũ Trụ Số</p>
+        <button class="btn-action" onclick="startGame()">BẮT ĐẦU</button>
+    </div>
+
+    <div id="win-modal" class="modal-overlay">
+        <div class="game-modal">
+            <h1 style="color: var(--neon-gold);">CHIẾN THẮNG!</h1>
+            <p id="final-score-text"></p>
+            <button class="btn-action" onclick="window.location.href='lv4.html'">SANG LEVEL 4</button>
+        </div>
+    </div>
+
+    <div id="lose-modal" class="modal-overlay">
+        <div class="game-modal">
+            <h1 style="color: #ff4d4d;">THỬ LẠI NHÉ!</h1>
+            <button class="btn-action" onclick="location.reload()">CHƠI LẠI</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let step = 0, totalSteps = 10, hp = 3, score = 0, ans = 0, gameActive = false, timerWidth = 100;
+    const planetColors = ['#e91e63', '#9c27b0', '#2196f3', '#00bcd4', '#4caf50', '#ffeb3b'];
+
+    // Khởi tạo thế giới
+    const world = document.getElementById('world');
+    for(let i = 0; i <= totalSteps; i++) {
+        const p = document.createElement('div');
+        p.className = 'planet'; p.id = `planet-${i}`;
+        p.style.bottom = (5 + (i * 8.5)) + "%";
+        p.style.left = i % 2 === 0 ? "20%" : "80%";
+        p.style.background = `radial-gradient(circle at 30% 30%, ${planetColors[i%6]}, #000)`;
+        p.style.transform = "translateX(-50%)";
+        world.appendChild(p);
+    }
+
+    // --- PHÍM TẮT TEST (T: Thắng, L: Thua) ---
+    document.addEventListener('keydown', (e) => {
+        if (!gameActive) return;
+        if (e.key.toLowerCase() === 't') { score += 300; step = totalSteps; moveHero(); victory(); }
+        if (e.key.toLowerCase() === 'l') { hp = 0; gameOver(); }
+    });
+
+    function playSnd(id) {
+        const s = document.getElementById(id);
+        if(s) { s.currentTime = 0; s.play().catch(e => {}); }
+    }
+
+    function startGame() {
+        document.getElementById('start-overlay').style.display = 'none';
+        gameActive = true;
+        playSnd('audio-bg');
+        moveHero();
+        newLevel();
+        setInterval(() => {
+            if(!gameActive) return;
+            timerWidth -= 0.55; 
+            document.getElementById('timer-progress').style.width = timerWidth + "%";
+            if(timerWidth <= 0) handleTap({innerText: -1});
+        }, 100);
+    }
+
+    function newLevel() {
+        let n1 = Math.floor(Math.random() * 11) + 5; // 5-15
+        let n2 = Math.floor(Math.random() * (20 - n1)) + 1;
+        ans = n1 + n2;
+        document.getElementById('math-quest').innerText = `${n1} + ${n2}`;
+        
+        let choices = [ans, ans + Math.floor(Math.random()*2)+1, ans - Math.floor(Math.random()*2)-1];
+        choices = [...new Set(choices)].filter(x => x > 0);
+        while(choices.length < 3) choices.push(ans + choices.length + 1);
+        choices.sort(() => Math.random() - 0.5);
+
+        document.querySelectorAll('.math-btn').forEach((b, i) => b.innerText = choices[i]);
+        timerWidth = 100;
+    }
+
+    function handleTap(btn) {
+        if(!gameActive) return;
+        if(parseInt(btn.innerText) === ans) {
+            playSnd('audio-dung');
+            createScoreEffect();
+            createParticles();
+            score += 30;
+            document.getElementById('score-val').innerText = score;
+            step++;
+            moveHero();
+            if(step >= totalSteps) victory();
+            else setTimeout(newLevel, 600);
+        } else {
+            playSnd('audio-sai');
+            hp--;
+            updateHP();
+            if(hp <= 0) gameOver();
+            else newLevel();
+        }
+    }
+
+    function moveHero() {
+        const hero = document.getElementById('hero');
+        const target = document.getElementById(`planet-${step}`);
+        if(target) {
+            hero.style.bottom = (parseFloat(target.style.bottom) + 1) + "%";
+            hero.style.left = target.style.left;
+        }
+    }
+
+    function createScoreEffect() {
+        const hero = document.getElementById('hero');
+        const popup = document.createElement('div');
+        popup.className = 'score-popup';
+        popup.innerText = '+30';
+        popup.style.left = hero.style.left;
+        popup.style.bottom = hero.style.bottom;
+        world.appendChild(popup);
+        setTimeout(() => popup.remove(), 1000);
+    }
+
+    function createParticles() {
+        const hero = document.getElementById('hero');
+        for(let i = 0; i < 15; i++) {
+            const star = document.createElement('div');
+            star.className = 'star-particle';
+            star.innerText = '★';
+            star.style.left = hero.style.left;
+            star.style.bottom = hero.style.bottom;
+            const tx = (Math.random() - 0.5) * 250 + "px";
+            const ty = (Math.random() - 0.5) * 250 + "px";
+            star.style.setProperty('--tx', tx);
+            star.style.setProperty('--ty', ty);
+            world.appendChild(star);
+            setTimeout(() => star.remove(), 800);
+        }
+    }
+
+    function updateHP() {
+        document.getElementById('lives-container').innerText = "❤️".repeat(hp) + "🖤".repeat(3-hp);
+    }
+
+    function victory() {
+        gameActive = false;
+        playSnd('audio-win');
+        document.getElementById('final-score-text').innerText = "Tổng điểm: " + score;
+        setTimeout(() => { document.getElementById('win-modal').style.display = 'flex'; }, 600);
+    }
+
+    function gameOver() {
+        gameActive = false;
+        document.getElementById('lose-modal').style.display = 'flex';
+    }
+</script>
+</body>
+</html>

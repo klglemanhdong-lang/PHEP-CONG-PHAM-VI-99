@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Level 7: Galaxy Guardian - LÊ MẠNH ĐÔNG</title>
+    <style>
+        :root {
+            --gold: #ffcc00;
+            --plasma: #00d4ff;
+            --heart: #ff4d4d;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body { background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; color: white; }
+
+        #game-frame {
+            width: 100vw; height: 100vh; max-width: 430px; max-height: 900px;
+            background: radial-gradient(circle, #1a0b2e, #000);
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            border: 4px solid var(--gold); border-radius: 40px;
+        }
+
+        /* TOP BAR: LÊ MẠNH ĐÔNG & 3 TIM */
+        #top-bar { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.8); z-index: 100; border-bottom: 1px solid var(--gold); }
+        .profile { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--gold); background: url('avatar.jpg') center/cover; background-color: #333; }
+        .admin-info { display: flex; flex-direction: column; }
+        .admin-name { font-weight: bold; font-size: 14px; color: var(--gold); letter-spacing: 0.5px; }
+        .hearts { color: var(--heart); font-size: 20px; margin-top: 2px; }
+
+        /* BATTLE ZONE */
+        #battle-zone { flex-grow: 1; position: relative; }
+        #hero { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); font-size: 65px; z-index: 50; transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .asteroid { position: absolute; width: 95px; height: 95px; background: #222; border: 3px solid var(--plasma); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; z-index: 10; box-shadow: 0 0 20px var(--plasma); }
+        .laser { position: absolute; background: var(--plasma); height: 6px; box-shadow: 0 0 20px var(--plasma); transform-origin: left center; opacity: 0; z-index: 40; pointer-events: none; }
+
+        /* CONTROLS */
+        #control-panel { background: #050510; padding: 25px 20px; border-top: 3px solid var(--gold); }
+        #timer-bar { width: 100%; height: 12px; background: #222; margin-bottom: 20px; border-radius: 6px; border: 1px solid #444; overflow: hidden; }
+        #timer-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--plasma), var(--gold)); transition: width 0.1s linear; }
+        #math-quest { font-size: 50px; text-align: center; margin-bottom: 20px; color: #fff; text-shadow: 0 0 15px var(--gold); font-weight: 900; }
+        .ans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .ans-btn { aspect-ratio: 1; background: linear-gradient(145deg, #1a0b2e, #000); border: 2px solid var(--gold); color: white; font-size: 32px; font-weight: bold; border-radius: 20px; cursor: pointer; transition: 0.2s; }
+        .ans-btn:active { transform: scale(0.9); background: var(--gold); color: #000; }
+
+        /* OVERLAYS */
+        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 1000; padding: 30px; }
+        .btn-main { background: var(--gold); color: black; border: none; padding: 18px 50px; border-radius: 40px; font-weight: 900; font-size: 22px; margin-top: 30px; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 20px rgba(255, 204, 0, 0.4); }
+        .btn-main:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+<!-- Audio Elements -->
+<audio id="audio-bg" src="nhac-nen.mp3" loop preloads="auto"></audio>
+<audio id="audio-dung" src="dung.mp3" preloads="auto"></audio>
+<audio id="audio-sai" src="sai.mp3" preloads="auto"></audio>
+<audio id="audio-win" src="chien-thang.mp3" preloads="auto"></audio>
+
+<div id="game-frame">
+    <div id="top-bar">
+        <div class="profile">
+            <div class="avatar"></div>
+            <div class="admin-info">
+                <div class="admin-name">LÊ MẠNH ĐÔNG</div>
+                <div class="hearts" id="heart-box">❤️❤️❤️</div>
+            </div>
+        </div>
+        <div style="color: var(--gold); font-weight: bold; font-size: 18px;">SCORE: <span id="score">0</span></div>
+    </div>
+
+    <div id="battle-zone">
+        <div id="hero">🛡️</div>
+        <div id="laser-line" class="laser"></div>
+    </div>
+
+    <div id="control-panel">
+        <div id="timer-bar"><div id="timer-fill"></div></div>
+        <div id="math-quest">-- + --</div>
+        <div class="ans-grid">
+            <button class="ans-btn" onclick="checkAns(this)"></button>
+            <button class="ans-btn" onclick="checkAns(this)"></button>
+            <button class="ans-btn" onclick="checkAns(this)"></button>
+        </div>
+    </div>
+
+    <!-- Màn hình chờ để kích hoạt nhạc -->
+    <div id="modal-start" class="overlay">
+        <h1 style="color: var(--gold); font-size: 50px;">LEVEL 7</h1>
+        <p style="margin-top: 10px; letter-spacing: 2px;">GALAXY GUARDIAN</p>
+        <button class="btn-main" onclick="initGame()">BẮT ĐẦU</button>
+    </div>
+
+    <div id="modal-win" class="overlay" style="display: none;">
+        <h1 style="color: var(--gold); font-size: 40px;">XUẤT SẮC!</h1>
+        <p>QUÁ GIỎI!</p>
+        <button class="btn-main" onclick="nextLevel()">SANG LEVEL 8</button>
+    </div>
+
+    <div id="modal-lose" class="overlay" style="display: none;">
+        <h1 style="color: var(--heart); font-size: 40px;">THẤT BẠI</h1>
+        <p>Đừng bỏ cuộc nhé!</p>
+        <button class="btn-main" onclick="location.reload()">THỬ LẠI</button>
+    </div>
+</div>
+
+<script>
+    let lives = 3, score = 0, count = 0, currentAns = 0, gameActive = false, hang4Count = 0;
+    let timerWidth = 100;
+    let timerId;
+    const nextLvUrl = "lv8.html";
+
+    // TEST NHANH: T thắng, L thua
+    document.addEventListener('keydown', (e) => {
+        if (!gameActive && e.key.toLowerCase() !== 't') return;
+        if (e.key.toLowerCase() === 't') victory();
+        if (e.key.toLowerCase() === 'l') gameOver();
+    });
+
+    function playSnd(id) {
+        const s = document.getElementById(id);
+        if(s) {
+            s.pause(); // Reset nếu đang phát
+            s.currentTime = 0;
+            s.play().catch(e => console.log("Audio Error:", e));
+        }
+    }
+
+    function initGame() {
+        document.getElementById('modal-start').style.display = 'none';
+        gameActive = true;
+        // Kích hoạt nhạc nền ngay sau khi click
+        playSnd('audio-bg');
+        newLevel();
+        startTimer();
+    }
+
+    function generateMath() {
+        let n1, n2, sum;
+        while(true) {
+            n1 = Math.floor(Math.random() * 35) + 5;
+            n2 = Math.floor(Math.random() * 35) + 5;
+            sum = n1 + n2;
+            // Phạm vi 20-50, không nhớ, không 0-1 đơn vị
+            if (sum >= 20 && sum <= 50 && (n1 % 10) + (n2 % 10) <= 9) {
+                if (n1 % 10 > 1 && n2 % 10 > 1) {
+                    let isHang4 = (sum >= 40 && sum < 50);
+                    // Ép 5 câu có hàng chục là 4
+                    if (hang4Count < 5) {
+                        if (isHang4) { hang4Count++; return [n1, n2]; }
+                    } else {
+                        if (!isHang4) return [n1, n2];
+                    }
+                }
+            }
+        }
+    }
+
+    function newLevel() {
+        if (count >= 10) { victory(); return; }
+        const [n1, n2] = generateMath();
+        currentAns = n1 + n2;
+        document.getElementById('math-quest').innerText = `${n1} + ${n2}`;
+        
+        let alt = [currentAns, currentAns + 10, currentAns - 5];
+        alt = [...new Set(alt.filter(x => x > 0 && x <= 50))].sort(() => Math.random() - 0.5);
+        while(alt.length < 3) alt.push(currentAns + alt.length + 2);
+
+        document.querySelectorAll('.ans-btn').forEach((b, i) => {
+            b.innerText = alt[i];
+            b.style.visibility = 'visible';
+        });
+        
+        spawnAsteroid();
+        timerWidth = 100;
+    }
+
+    function checkAns(btn) {
+        if (!gameActive) return;
+        if (parseInt(btn.innerText) === currentAns) {
+            playSnd('audio-dung');
+            fireLaser();
+            score += 200; 
+            count++;
+            document.getElementById('score').innerText = score;
+            setTimeout(newLevel, 600);
+        } else {
+            lives--;
+            playSnd('audio-sai');
+            updateHearts();
+            btn.style.visibility = 'hidden'; // Ẩn đáp án sai
+            if (lives <= 0) gameOver();
+        }
+    }
+
+    function updateHearts() {
+        document.getElementById('heart-box').innerText = "❤️".repeat(lives);
+    }
+
+    function fireLaser() {
+        const hero = document.getElementById('hero');
+        const ast = document.getElementById('active-ast');
+        const laser = document.getElementById('laser-line');
+        if (!ast) return;
+
+        const hRect = hero.getBoundingClientRect();
+        const aRect = ast.getBoundingClientRect();
+        const fRect = document.getElementById('game-frame').getBoundingClientRect();
+        
+        const x1 = hRect.left + hRect.width / 2 - fRect.left;
+        const y1 = hRect.top + 20 - fRect.top;
+        const x2 = aRect.left + aRect.width / 2 - fRect.left;
+        const y2 = aRect.top + aRect.height / 2 - fRect.top;
+
+        laser.style.width = Math.hypot(x2-x1, y2-y1) + "px";
+        laser.style.left = x1 + "px";
+        laser.style.top = y1 + "px";
+        laser.style.transform = `rotate(${Math.atan2(y2-y1, x2-x1)}rad)`;
+        laser.style.opacity = "1";
+
+        // Magnetic Striker: Di chuyển nhân vật theo mục tiêu
+        hero.style.left = (aRect.left + aRect.width/2 - fRect.left) + "px";
+
+        setTimeout(() => {
+            laser.style.opacity = "0";
+            if(ast) ast.innerHTML = "💥";
+        }, 200);
+    }
+
+    function spawnAsteroid() {
+        const zone = document.getElementById('battle-zone');
+        if (document.getElementById('active-ast')) document.getElementById('active-ast').remove();
+        
+        const ast = document.createElement('div');
+        ast.className = 'asteroid';
+        ast.id = 'active-ast';
+        ast.innerText = "👾";
+        ast.style.left = Math.random() * (zone.offsetWidth - 120) + 60 + "px";
+        ast.style.top = "30px";
+        zone.appendChild(ast);
+    }
+
+    function startTimer() {
+        timerId = setInterval(() => {
+            if (!gameActive) return;
+            timerWidth -= 0.6; // ~15 giây
+            document.getElementById('timer-fill').style.width = timerWidth + "%";
+            
+            if (timerWidth <= 0) {
+                lives--;
+                updateHearts();
+                playSnd('audio-sai');
+                if (lives <= 0) gameOver(); else newLevel();
+            }
+        }, 100);
+    }
+
+    function victory() {
+        gameActive = false;
+        clearInterval(timerId);
+        document.getElementById('audio-bg').pause();
+        playSnd('audio-win');
+        document.getElementById('modal-win').style.display = 'flex';
+    }
+
+    function gameOver() {
+        gameActive = false;
+        clearInterval(timerId);
+        document.getElementById('audio-bg').pause();
+        document.getElementById('modal-lose').style.display = 'flex';
+    }
+
+    function nextLevel() {
+        window.location.href = nextLvUrl;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Level 10: Anti-Duplicate - LÊ MẠNH ĐÔNG</title>
+    <style>
+        :root { --atomic-green: #00ff88; --core-blue: #0077ff; --gold: #ffd700; --heart: #ff4d4d; --bg-dark: #02050a; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body { background: var(--bg-dark); display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Arial Rounded MT Bold', sans-serif; overflow: hidden; color: white; }
+
+        #game-frame {
+            width: 100vw; height: 100vh; max-width: 430px; max-height: 900px;
+            background: radial-gradient(circle at center, #0a1a2a 0%, #000 100%);
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            border: 4px solid #1a1a1a; border-radius: 40px;
+        }
+
+        /* TOP BAR - NGUYÊN TẮC 1 */
+        #top-bar { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.8); z-index: 100; border-bottom: 2px solid var(--gold); }
+        .profile { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--gold); background: url('avatar.jpg') center/cover; background-color: #333; }
+        .admin-name { font-weight: bold; font-size: 14px; color: var(--gold); }
+        .hearts { color: var(--heart); font-size: 20px; }
+
+        /* VÙNG CHƠI */
+        #play-area { flex-grow: 1; position: relative; z-index: 10; display: flex; justify-content: center; align-items: center; }
+        
+        #rotation-wrapper {
+            position: relative; width: 240px; height: 240px;
+            display: flex; justify-content: center; align-items: center;
+            animation: rotateFull 25s linear infinite;
+        }
+
+        #atomic-reactor {
+            position: relative; width: 200px; height: 200px;
+            display: flex; justify-content: center; align-items: center;
+            border: 6px dashed var(--core-blue); border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 119, 255, 0.3);
+        }
+
+        #equation-text { font-size: 38px; font-weight: bold; color: white; text-shadow: 0 0 15px rgba(255,255,255,0.6); }
+
+        .charging-effect { animation: pulseCharge 0.6s ease-out; }
+        @keyframes pulseCharge {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.25); border-color: var(--gold); background: rgba(255, 215, 0, 0.2); box-shadow: 0 0 50px var(--gold); }
+            100% { transform: scale(1); }
+        }
+        @keyframes rotateFull { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* ĐÁP ÁN CỐ ĐỊNH */
+        .electron {
+            position: absolute; width: 90px; height: 90px;
+            background: rgba(0, 255, 136, 0.1); border: 3px solid var(--atomic-green);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 34px; font-weight: bold; color: var(--atomic-green);
+            cursor: pointer; box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+            z-index: 20;
+        }
+        #el-0 { top: 10%; left: 50%; margin-left: -45px; } 
+        #el-1 { bottom: 18%; left: 12%; } 
+        #el-2 { bottom: 18%; right: 12%; } 
+
+        #control-panel { background: #000; padding: 20px; border-top: 3px solid var(--gold); }
+        #timer-bar { width: 100%; height: 12px; background: #222; border-radius: 6px; overflow: hidden; }
+        #timer-fill { width: 100%; height: 100%; background: var(--atomic-green); transition: width 0.1s linear; }
+
+        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 1000; }
+        .btn-main { background: var(--gold); color: black; border: none; padding: 15px 45px; border-radius: 30px; font-weight: 900; font-size: 22px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<audio id="audio-bg-2" src="nhac-nen-2.mp3" loop></audio>
+<audio id="audio-dung" src="dung.mp3"></audio>
+<audio id="audio-sai" src="sai.mp3"></audio>
+<audio id="audio-win" src="chien-thang.mp3"></audio>
+
+<div id="game-frame">
+    <div id="top-bar">
+        <div class="profile">
+            <div class="avatar"></div>
+            <div class="admin-name">LÊ MẠNH ĐÔNG</div>
+        </div>
+        <div class="hearts" id="heart-box">❤️❤️❤️</div>
+    </div>
+
+    <div id="play-area">
+        <div id="rotation-wrapper">
+            <div id="atomic-reactor">
+                <div id="equation-text">-- + --</div>
+            </div>
+        </div>
+        <div id="el-0" class="electron"></div>
+        <div id="el-1" class="electron"></div>
+        <div id="el-2" class="electron"></div>
+    </div>
+
+    <div id="control-panel">
+        <div id="timer-bar"><div id="timer-fill"></div></div>
+    </div>
+
+    <div id="modal-start" class="overlay">
+        <h1 style="color: var(--core-blue); font-size: 45px;">LEVEL 10</h1>
+        <p style="color: var(--atomic-green); margin: 10px 0 25px;">KHÔNG TRÙNG LẶP - 20S/CÂU</p>
+        <button class="btn-main" onclick="initGame()">KÍCH HOẠT</button>
+    </div>
+
+    <div id="modal-win" class="overlay" style="display:none">
+        <h1 id="win-text" style="color: var(--gold); font-size: 35px;"></h1>
+        <button class="btn-main" style="margin-top:20px" onclick="nextLevel()">TIẾP TỤC</button>
+    </div>
+
+    <div id="modal-lose" class="overlay" style="display:none">
+        <h1 style="color: var(--heart);">LÒ PHẢN ỨNG QUÁ TẢI</h1>
+        <button class="btn-main" style="margin-top:20px" onclick="location.reload()">THỬ LẠI</button>
+    </div>
+</div>
+
+<script>
+    let lives = 3, count = 0, currentAns = 0, gameActive = false;
+    let timerWidth = 100, timerId;
+    let questionBank = []; // Kho câu hỏi duy nhất
+    const compliments = ["Quá xuất sắc!", "Giỏi quá!", "Bạn thật thông minh!", "Tuyệt vời!"];
+
+    // NGUYÊN TẮC 4: DEV MODE
+    document.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 't') victory();
+        if (e.key.toLowerCase() === 'l') gameOver();
+    });
+
+    function playSnd(id) {
+        const s = document.getElementById(id);
+        if(s) { s.currentTime = 0; s.play().catch(()=>{}); }
+    }
+
+    // KHẮC PHỤC TRÙNG LẶP: Tạo kho câu hỏi duy nhất trước khi chơi
+    function prepareQuestions() {
+        let pool = [];
+        let poolHigh = []; // Chứa các câu 70-80
+
+        for (let i = 10; i <= 70; i++) {
+            for (let j = 10; j <= 70; j++) {
+                let sum = i + j;
+                if (sum >= 30 && sum <= 80 && (i % 10 + j % 10 <= 9)) {
+                    let q = { n1: i, n2: j, ans: sum };
+                    if (sum >= 70 && sum <= 80) poolHigh.push(q);
+                    else pool.push(q);
+                }
+            }
+        }
+        // Xáo trộn
+        poolHigh.sort(() => Math.random() - 0.5);
+        pool.sort(() => Math.random() - 0.5);
+
+        // Lấy 5 câu khó và 5 câu thường để tạo thành 10 câu duy nhất
+        questionBank = [...poolHigh.slice(0, 5), ...pool.slice(0, 5)];
+        questionBank.sort(() => Math.random() - 0.5);
+    }
+
+    function initGame() {
+        prepareQuestions();
+        document.getElementById('modal-start').style.display = 'none';
+        gameActive = true;
+        const bg = document.getElementById('audio-bg-2');
+        bg.volume = 0.1;
+        bg.play().catch(()=>{});
+        newLevel();
+        startTimer();
+    }
+
+    function newLevel() {
+        if (count >= 10 || questionBank.length === 0) { victory(); return; }
+        
+        // Lấy câu hỏi từ kho và xóa nó đi (Không bao giờ trùng)
+        const q = questionBank.pop();
+        currentAns = q.ans;
+        document.getElementById('equation-text').innerText = `${q.n1} + ${q.n2}`;
+        
+        let answers = [q.ans, q.ans + 10, q.ans - 2].sort(() => Math.random() - 0.5);
+        for(let i=0; i<3; i++) {
+            const el = document.getElementById(`el-${i}`);
+            el.innerText = answers[i];
+            el.style.opacity = "1";
+            el.style.transform = "translate(0, 0) scale(1)";
+            el.onclick = () => checkAns(el, answers[i]);
+        }
+        timerWidth = 100;
+    }
+
+    function checkAns(el, val) {
+        if (!gameActive) return;
+        if (val === currentAns) {
+            playSnd('audio-dung');
+            const rectEl = el.getBoundingClientRect();
+            const rectCenter = document.getElementById('atomic-reactor').getBoundingClientRect();
+            const moveX = (rectCenter.left + rectCenter.width/2) - (rectEl.left + rectEl.width/2);
+            const moveY = (rectCenter.top + rectCenter.height/2) - (rectEl.top + rectEl.height/2);
+            el.style.transform = `translate(${moveX}px, ${moveY}px) scale(0.1)`;
+            el.style.opacity = "0";
+
+            const reactor = document.getElementById('atomic-reactor');
+            reactor.classList.remove('charging-effect');
+            void reactor.offsetWidth; 
+            reactor.classList.add('charging-effect');
+            
+            count++;
+            setTimeout(newLevel, 700);
+        } else {
+            lives--; playSnd('audio-sai'); updateHearts();
+            if (lives <= 0) gameOver();
+        }
+    }
+
+    function startTimer() {
+        timerId = setInterval(() => {
+            if (!gameActive) return;
+            timerWidth -= 0.5; // 20 giây
+            document.getElementById('timer-fill').style.width = timerWidth + "%";
+            if (timerWidth <= 0) {
+                lives--; updateHearts(); playSnd('audio-sai');
+                if (lives <= 0) gameOver(); else newLevel();
+            }
+        }, 100);
+    }
+
+    function updateHearts() { document.getElementById('heart-box').innerText = "❤️".repeat(lives); }
+    function victory() {
+        gameActive = false; clearInterval(timerId); playSnd('audio-win');
+        document.getElementById('win-text').innerText = compliments[Math.floor(Math.random()*compliments.length)];
+        document.getElementById('modal-win').style.display = 'flex';
+    }
+    function gameOver() { gameActive = false; clearInterval(timerId); document.getElementById('modal-lose').style.display = 'flex'; }
+    function nextLevel() { window.location.href = "lv11.html"; }
+</script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Level 4: Deep Sea - LÊ MẠNH ĐÔNG</title>
+    <style>
+        :root {
+            --ocean-blue: #0077be;
+            --coral-pink: #ff7f50;
+            --sand-yellow: #f4d03f;
+            --deep-dark: #001219;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        body {
+            margin: 0; padding: 0; background: var(--deep-dark);
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; font-family: 'Segoe UI', Arial, sans-serif;
+            overflow: hidden; color: white;
+        }
+
+        #game-frame {
+            width: 100vw; height: 100vh;
+            max-width: 430px; max-height: 900px;
+            background: linear-gradient(to bottom, #005f73 0%, #001219 100%);
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
+            border: 4px solid #333; border-radius: 40px;
+        }
+
+        /* --- TOP BAR (CỐ ĐỊNH) --- */
+        #top-bar { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 20px; z-index: 100; background: rgba(0,0,0,0.2); }
+        .profile { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: url('avatar.jpg') no-repeat center; background-size: cover; border: 2px solid var(--ocean-blue); box-shadow: 0 0 10px var(--ocean-blue); }
+        .admin-name { font-weight: 900; color: white; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .status-info { text-align: right; }
+        .lives { font-size: 18px; margin-bottom: 2px; }
+        .score-board { font-weight: bold; font-size: 14px; color: var(--sand-yellow); }
+
+        /* --- GAME WORLD --- */
+        #world { flex-grow: 1; position: relative; }
+        .shell { 
+            position: absolute; width: 70px; height: 50px; 
+            font-size: 40px; text-align: center;
+            transition: 0.5s; z-index: 5;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5));
+        }
+        #hero { 
+            position: absolute; width: 60px; height: 60px; font-size: 50px; 
+            z-index: 50; text-align: center; line-height: 60px; 
+            transition: all 0.7s cubic-bezier(0.5, 0, 0.5, 1.2);
+        }
+
+        /* HIỆU ỨNG POPUP + BỌT KHÍ (Thay cho sao) */
+        .score-popup {
+            position: absolute; color: var(--sand-yellow);
+            font-weight: 900; font-size: 26px;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 100; pointer-events: none;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-80px); opacity: 0; }
+        }
+
+        .bubble-particle {
+            position: absolute; width: 10px; height: 10px;
+            background: rgba(255,255,255,0.4); border-radius: 50%;
+            border: 1px solid white; pointer-events: none; z-index: 60;
+            animation: bubblePop 0.8s ease-out forwards;
+        }
+        @keyframes bubblePop {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(1.5); opacity: 0; }
+        }
+
+        /* --- CONTROL PANEL --- */
+        #control-panel { background: rgba(0,18,25,0.8); backdrop-filter: blur(15px); padding: 20px; border-top: 2px solid var(--ocean-blue); }
+        #timer-progress { height: 8px; background: linear-gradient(90deg, var(--ocean-blue), #94d2bd); width: 100%; border-radius: 10px; margin-bottom: 15px; }
+        #question-card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; text-align: center; border: 1.5px solid var(--ocean-blue); }
+        #math-quest { font-size: 48px; font-weight: 900; margin: 0; color: white; }
+
+        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .math-btn { aspect-ratio: 1/1; border: none; border-radius: 20px; background: #005f73; color: white; font-size: 32px; font-weight: bold; box-shadow: 0 5px 0 #002d36; cursor: pointer; }
+        .math-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #002d36; }
+
+        /* MODALS */
+        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: none; justify-content: center; align-items: center; }
+        .game-modal { width: 80%; background: #002d36; border: 3px solid var(--ocean-blue); border-radius: 35px; padding: 30px; text-align: center; }
+        .btn-action { background: var(--ocean-blue); color: white; border: none; padding: 12px 35px; font-size: 18px; font-weight: bold; border-radius: 50px; cursor: pointer; margin-top: 20px; }
+
+        #start-overlay { position: absolute; inset: 0; background: var(--deep-dark); z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    </style>
+</head>
+<body>
+
+<audio id="audio-bg" src="nhac-nen.mp3" loop></audio>
+<audio id="audio-dung" src="dung.mp3"></audio>
+<audio id="audio-sai" src="sai.mp3"></audio>
+<audio id="audio-win" src="chien-thang.mp3"></audio>
+
+<div id="game-frame">
+    <div id="top-bar">
+        <div class="profile">
+            <div class="avatar"></div>
+            <div class="admin-name">LÊ MẠNH ĐÔNG</div>
+        </div>
+        <div class="status-info">
+            <div class="lives" id="lives-container">❤️❤️❤️</div>
+            <div class="score-board">SCORE: <span id="score-val">0</span></div>
+        </div>
+    </div>
+
+    <div id="world"><div id="hero">🤿</div></div>
+
+    <div id="control-panel">
+        <div id="timer-progress"></div>
+        <div id="question-card"><h2 id="math-quest"></h2></div>
+        <div class="btn-grid">
+            <button class="math-btn" onclick="handleTap(this)"></button>
+            <button class="math-btn" onclick="handleTap(this)"></button>
+            <button class="math-btn" onclick="handleTap(this)"></button>
+        </div>
+    </div>
+
+    <div id="start-overlay">
+        <h1 style="color: var(--ocean-blue); font-size: 38px;">LEVEL 4</h1>
+        <p style="color: #94d2bd; margin-bottom: 30px;">Cộng phạm vi 30 (Không nhớ)</p>
+        <button class="btn-action" onclick="startGame()">KHÁM PHÁ ĐẠI DƯƠNG</button>
+    </div>
+
+    <div id="win-modal" class="modal-overlay">
+        <div class="game-modal">
+            <h1 style="color: var(--sand-yellow);">XUẤT SẮC!</h1>
+            <p id="final-score-text"></p>
+            <button class="btn-action" onclick="window.location.href='lv5.html'">SANG LEVEL 5</button>
+        </div>
+    </div>
+
+    <div id="lose-modal" class="modal-overlay">
+        <div class="game-modal">
+            <h1 style="color: var(--coral-pink);">HẾT OXY RỒI!</h1>
+            <button class="btn-action" onclick="location.reload()">THỬ LẠI</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let step = 0, totalSteps = 10, hp = 3, score = 0, ans = 0, gameActive = false, timerWidth = 100;
+
+    // Khởi tạo Vỏ sò ZicZac rộng
+    const world = document.getElementById('world');
+    for(let i = 0; i <= totalSteps; i++) {
+        const s = document.createElement('div');
+        s.className = 'shell'; s.id = `shell-${i}`;
+        s.innerText = '🐚';
+        s.style.bottom = (5 + (i * 8.5)) + "%";
+        s.style.left = i % 2 === 0 ? "20%" : "80%";
+        s.style.transform = "translateX(-50%)";
+        world.appendChild(s);
+    }
+
+    // Phím tắt TEST (T: Thắng, L: Thua)
+    document.addEventListener('keydown', (e) => {
+        if (!gameActive) return;
+        if (e.key.toLowerCase() === 't') { score += 300; step = totalSteps; moveHero(); victory(); }
+        if (e.key.toLowerCase() === 'l') { hp = 0; gameOver(); }
+    });
+
+    function playSnd(id) {
+        const s = document.getElementById(id);
+        if(s) { s.currentTime = 0; s.play().catch(e => {}); }
+    }
+
+    function startGame() {
+        document.getElementById('start-overlay').style.display = 'none';
+        gameActive = true;
+        playSnd('audio-bg');
+        moveHero();
+        newLevel();
+        setInterval(() => {
+            if(!gameActive) return;
+            timerWidth -= 0.5; // Khoảng 20 giây mỗi câu
+            document.getElementById('timer-progress').style.width = timerWidth + "%";
+            if(timerWidth <= 0) handleTap({innerText: -1});
+        }, 100);
+    }
+
+    function generateNoCarryAddition() {
+        let n1, n2, u1, u2;
+        do {
+            n1 = Math.floor(Math.random() * 20) + 5; // 5-25
+            n2 = Math.floor(Math.random() * (30 - n1)) + 1;
+            u1 = n1 % 10;
+            u2 = n2 % 10;
+        } while (u1 + u2 > 9 || (n1 + n2) > 30 || (n1 + n2) < 10); 
+        // Đảm bảo không nhớ và kết quả trong phạm vi 10-30
+        return [n1, n2];
+    }
+
+    function newLevel() {
+        const [n1, n2] = generateNoCarryAddition();
+        ans = n1 + n2;
+        document.getElementById('math-quest').innerText = `${n1} + ${n2}`;
+        
+        let choices = [ans, ans + 2, ans - 2];
+        if (ans <= 2) choices = [ans, ans+1, ans+2];
+        choices = [...new Set(choices)].sort(() => Math.random() - 0.5);
+        
+        document.querySelectorAll('.math-btn').forEach((b, i) => {
+            b.innerText = choices[i] || ans + i + 1;
+        });
+        timerWidth = 100;
+    }
+
+    function handleTap(btn) {
+        if(!gameActive) return;
+        if(parseInt(btn.innerText) === ans) {
+            playSnd('audio-dung');
+            createScoreEffect();
+            createBubbles();
+            score += 30;
+            document.getElementById('score-val').innerText = score;
+            step++;
+            moveHero();
+            if(step >= totalSteps) victory();
+            else setTimeout(newLevel, 600);
+        } else {
+            playSnd('audio-sai');
+            hp--;
+            updateHP();
+            if(hp <= 0) gameOver();
+            else newLevel();
+        }
+    }
+
+    function moveHero() {
+        const hero = document.getElementById('hero');
+        const target = document.getElementById(`shell-${step}`);
+        if(target) {
+            hero.style.bottom = (parseFloat(target.style.bottom) + 2) + "%";
+            hero.style.left = target.style.left;
+        }
+    }
+
+    function createScoreEffect() {
+        const hero = document.getElementById('hero');
+        const popup = document.createElement('div');
+        popup.className = 'score-popup';
+        popup.innerText = '+30';
+        popup.style.left = hero.style.left;
+        popup.style.bottom = hero.style.bottom;
+        world.appendChild(popup);
+        setTimeout(() => popup.remove(), 1000);
+    }
+
+    function createBubbles() {
+        const hero = document.getElementById('hero');
+        for(let i = 0; i < 15; i++) {
+            const b = document.createElement('div');
+            b.className = 'bubble-particle';
+            b.style.left = hero.style.left;
+            b.style.bottom = hero.style.bottom;
+            const tx = (Math.random() - 0.5) * 200 + "px";
+            const ty = (Math.random() - 0.5) * 200 + "px";
+            b.style.setProperty('--tx', tx);
+            b.style.setProperty('--ty', ty);
+            world.appendChild(b);
+            setTimeout(() => b.remove(), 800);
+        }
+    }
+
+    function updateHP() {
+        document.getElementById('lives-container').innerText = "❤️".repeat(hp) + "🖤".repeat(3-hp);
+    }
+
+    function victory() {
+        gameActive = false;
+        playSnd('audio-win');
+        document.getElementById('final-score-text').innerText = "Tổng điểm đạt được: " + score;
+        setTimeout(() => { document.getElementById('win-modal').style.display = 'flex'; }, 600);
+    }
+
+    function gameOver() {
+        gameActive = false;
+        document.getElementById('lose-modal').style.display = 'flex';
+    }
+</script>
+</body>
+</html>

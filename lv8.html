@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Level 8: Deep Sea Treasure - LÊ MẠNH ĐÔNG</title>
+    <style>
+        :root {
+            --ocean-blue: #0077be;
+            --sand: #c2b280;
+            --gold: #ffd700;
+            --heart: #ff4d4d;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body { background: #001219; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Arial Rounded MT Bold', sans-serif; overflow: hidden; color: white; }
+
+        #game-frame {
+            width: 100vw; height: 100vh; max-width: 430px; max-height: 900px;
+            background: linear-gradient(to bottom, #005f73 0%, #001219 100%);
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            border: 4px solid var(--ocean-blue); border-radius: 40px;
+        }
+
+        /* TOP BAR: LÊ MẠNH ĐÔNG & 3 TIM */
+        #top-bar { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.5); z-index: 100; border-bottom: 2px solid var(--ocean-blue); }
+        .profile { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--gold); background: url('avatar.jpg') center/cover; background-color: #333; }
+        .admin-name { font-weight: bold; font-size: 14px; color: var(--gold); }
+        .hearts { color: var(--heart); font-size: 20px; }
+
+        /* SEA ZONE */
+        #sea-zone { flex-grow: 1; position: relative; }
+        #diver { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); font-size: 60px; z-index: 50; transition: left 0.4s; }
+        
+        .bubble {
+            position: absolute; width: 85px; height: 85px;
+            background: rgba(255, 255, 255, 0.2); border: 2px solid white; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 32px; font-weight: bold; color: white;
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.5); z-index: 10;
+        }
+
+        /* Tay gắp Robot */
+        #claw { position: absolute; width: 4px; background: #888; top: 110px; left: 50%; opacity: 0; transform-origin: top center; z-index: 45; }
+
+        /* CONTROLS */
+        #control-panel { background: #002129; padding: 25px 20px; border-top: 3px solid var(--gold); }
+        #timer-bar { width: 100%; height: 12px; background: #222; margin-bottom: 20px; border-radius: 6px; overflow: hidden; }
+        #timer-fill { width: 100%; height: 100%; background: var(--ocean-blue); transition: width 0.1s linear; }
+        #math-quest { font-size: 48px; text-align: center; margin-bottom: 20px; color: var(--gold); text-shadow: 0 0 10px #000; }
+        .ans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .ans-btn { aspect-ratio: 1; background: #005f73; border: 2px solid var(--gold); color: white; font-size: 32px; font-weight: bold; border-radius: 20px; cursor: pointer; }
+
+        /* OVERLAYS */
+        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 1000; padding: 30px; }
+        .btn-main { background: var(--gold); color: black; border: none; padding: 18px 50px; border-radius: 40px; font-weight: 900; font-size: 22px; margin-top: 30px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<audio id="audio-bg" src="nhac-nen.mp3" loop></audio>
+<audio id="audio-dung" src="dung.mp3"></audio>
+<audio id="audio-sai" src="sai.mp3"></audio>
+<audio id="audio-win" src="chien-thang.mp3"></audio>
+
+<div id="game-frame">
+    <div id="top-bar">
+        <div class="profile">
+            <div class="avatar"></div>
+            <div class="admin-info">
+                <div class="admin-name">LÊ MẠNH ĐÔNG</div>
+                <div class="hearts" id="heart-box">❤️❤️❤️</div>
+            </div>
+        </div>
+        <div style="color: var(--gold); font-weight: bold;">ĐIỂM: <span id="score">0</span></div>
+    </div>
+
+    <div id="sea-zone">
+        <div id="diver">👨‍🚀</div> <!-- Thợ lặn -->
+        <div id="claw"></div> <!-- Cánh tay robot -->
+    </div>
+
+    <div id="control-panel">
+        <div id="timer-bar"><div id="timer-fill"></div></div>
+        <div id="math-quest">-- + --</div>
+        <div class="ans-grid">
+            <button class="ans-btn" onclick="checkAns(this)"></button>
+            <button class="ans-btn" onclick="checkAns(this)"></button>
+            <button class="ans-btn" onclick="checkAns(this)"></button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-start" class="overlay">
+        <h1 style="color: var(--gold); font-size: 45px;">LEVEL 8</h1>
+        <p>THỢ LẶN ĐẠI DƯƠNG</p>
+        <button class="btn-main" onclick="initGame()">LẶN XUỐNG</button>
+    </div>
+
+    <div id="modal-win" class="overlay" style="display: none;">
+        <h1 style="color: var(--gold); font-size: 35px;">TUYỆT VỜI!</h1>
+        <p>Chúc mừng bạn đã vượt qua!</p>
+        <button class="btn-main" onclick="nextLevel()">SANG LEVEL 9</button>
+    </div>
+
+    <div id="modal-lose" class="overlay" style="display: none;">
+        <h1 style="color: var(--heart); font-size: 35px;">GAME OVER</h1>
+        <button class="btn-main" onclick="location.reload()">THỬ LẠI</button>
+    </div>
+</div>
+
+<script>
+    let lives = 3, score = 0, count = 0, currentAns = 0, gameActive = false;
+    let timerWidth = 100;
+    let timerId;
+    const nextLvUrl = "lv9.html";
+
+    // NGUYÊN TẮC 4: DEV MODE
+    document.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 't') victory();
+        if (e.key.toLowerCase() === 'l') gameOver();
+    });
+
+    function playSnd(id) {
+        const s = document.getElementById(id);
+        if(s) { s.currentTime = 0; s.play().catch(()=>{}); }
+    }
+
+    function initGame() {
+        document.getElementById('modal-start').style.display = 'none';
+        gameActive = true;
+        playSnd('audio-bg');
+        newLevel();
+        startTimer();
+    }
+
+    function generateMath() {
+        let n1, n2, sum;
+        while(true) {
+            n1 = Math.floor(Math.random() * 45) + 5;
+            n2 = Math.floor(Math.random() * 45) + 5;
+            sum = n1 + n2;
+            // Phạm vi 60, không nhớ, không 0-1 đơn vị
+            if (sum >= 30 && sum <= 60 && (n1 % 10) + (n2 % 10) <= 9) {
+                if (n1 % 10 > 1 && n2 % 10 > 1) return [n1, n2];
+            }
+        }
+    }
+
+    function newLevel() {
+        if (count >= 10) { victory(); return; }
+        const [n1, n2] = generateMath();
+        currentAns = n1 + n2;
+        document.getElementById('math-quest').innerText = `${n1} + ${n2}`;
+        
+        let alt = [currentAns, currentAns + 10, currentAns - 2].sort(() => Math.random() - 0.5);
+        document.querySelectorAll('.ans-btn').forEach((b, i) => b.innerText = alt[i]);
+        
+        spawnBubble();
+        timerWidth = 100;
+    }
+
+    function spawnBubble() {
+        const zone = document.getElementById('sea-zone');
+        if (document.getElementById('active-bub')) document.getElementById('active-bub').remove();
+        
+        const bub = document.createElement('div');
+        bub.className = 'bubble';
+        bub.id = 'active-bub';
+        bub.innerText = "💎";
+        bub.style.left = Math.random() * (zone.offsetWidth - 120) + 60 + "px";
+        bub.style.bottom = "-100px"; // Bay từ dưới lên
+        zone.appendChild(bub);
+    }
+
+    function startTimer() {
+        timerId = setInterval(() => {
+            if (!gameActive) return;
+            timerWidth -= 0.6;
+            document.getElementById('timer-fill').style.width = timerWidth + "%";
+            
+            const bub = document.getElementById('active-bub');
+            if (bub) {
+                // Bong bóng bay từ dưới lên
+                bub.style.bottom = (100 - timerWidth) * 5 + "px";
+            }
+
+            if (timerWidth <= 0) {
+                lives--;
+                updateHearts();
+                playSnd('audio-sai');
+                if (lives <= 0) gameOver(); else newLevel();
+            }
+        }, 100);
+    }
+
+    function checkAns(btn) {
+        if (!gameActive) return;
+        if (parseInt(btn.innerText) === currentAns) {
+            playSnd('audio-dung');
+            grabEffect();
+            score += 200; count++;
+            document.getElementById('score').innerText = score;
+            setTimeout(newLevel, 700);
+        } else {
+            lives--;
+            playSnd('audio-sai');
+            updateHearts();
+            if (lives <= 0) gameOver();
+        }
+    }
+
+    function grabEffect() {
+        const diver = document.getElementById('diver');
+        const bub = document.getElementById('active-bub');
+        const claw = document.getElementById('claw');
+        if (!bub) return;
+
+        const dRect = diver.getBoundingClientRect();
+        const bRect = bub.getBoundingClientRect();
+        const fRect = document.getElementById('game-frame').getBoundingClientRect();
+
+        // Magnetic Striker: Thợ lặn bơi ngang đến bong bóng
+        diver.style.left = (bRect.left + bRect.width/2 - fRect.left) + "px";
+
+        // Cánh tay Robot phóng xuống
+        const dist = bRect.top - dRect.top - 50;
+        claw.style.left = (bRect.left + bRect.width/2 - fRect.left) + "px";
+        claw.style.height = dist + "px";
+        claw.style.opacity = "1";
+
+        setTimeout(() => {
+            claw.style.opacity = "0";
+            claw.style.height = "0";
+            bub.innerText = "✨";
+            bub.style.background = "var(--gold)";
+        }, 300);
+    }
+
+    function updateHearts() {
+        document.getElementById('heart-box').innerText = "❤️".repeat(lives);
+    }
+
+    function victory() {
+        gameActive = false;
+        clearInterval(timerId);
+        playSnd('audio-win');
+        document.getElementById('modal-win').style.display = 'flex';
+    }
+
+    function gameOver() {
+        gameActive = false;
+        clearInterval(timerId);
+        document.getElementById('modal-lose').style.display = 'flex';
+    }
+
+    function nextLevel() {
+        window.location.href = nextLvUrl;
+    }
+</script>
+</body>
+</html>

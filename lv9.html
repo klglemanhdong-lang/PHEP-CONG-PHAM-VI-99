@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Level 9: Magic Forest - LÊ MẠNH ĐÔNG</title>
+    <style>
+        :root {
+            --forest-green: #2d6a4f;
+            --apple-red: #ff4d4d;
+            --gold: #ffd700;
+            --heart: #ff4d4d;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body { background: #081c15; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Arial Rounded MT Bold', sans-serif; overflow: hidden; color: white; }
+
+        #game-frame {
+            width: 100vw; height: 100vh; max-width: 430px; max-height: 900px;
+            background: linear-gradient(to bottom, #1b4332 0%, #081c15 100%);
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            border: 4px solid var(--forest-green); border-radius: 40px;
+        }
+
+        /* TOP BAR: LÊ MẠNH ĐÔNG & 3 TIM */
+        #top-bar { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.6); z-index: 100; border-bottom: 2px solid var(--gold); }
+        .profile { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--gold); background: url('avatar.jpg') center/cover; background-color: #444; }
+        .admin-name { font-weight: bold; font-size: 14px; color: var(--gold); }
+        .hearts { color: var(--heart); font-size: 20px; }
+
+        /* FOREST ZONE */
+        #forest-zone { flex-grow: 1; position: relative; }
+        
+        #hero-basket { 
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            font-size: 70px; z-index: 50; 
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Hiệu ứng nhảy đàn hồi */
+        }
+
+        .magic-apple {
+            position: absolute; width: 90px; height: 90px;
+            background: radial-gradient(circle at 30% 30%, #ff8585, #d90429);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 38px; font-weight: bold; color: white;
+            z-index: 10; border: 3px solid var(--gold);
+        }
+
+        /* CONTROLS */
+        #control-panel { background: #1b4332; padding: 25px 20px; border-top: 3px solid var(--gold); }
+        #timer-bar { width: 100%; height: 12px; background: #081c15; margin-bottom: 20px; border-radius: 6px; overflow: hidden; }
+        #timer-fill { width: 100%; height: 100%; background: var(--gold); transition: width 0.1s linear; }
+        #math-quest { font-size: 52px; text-align: center; margin-bottom: 20px; color: white; text-shadow: 0 0 15px var(--gold); }
+        
+        .ans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .ans-btn { aspect-ratio: 1; background: #2d6a4f; border: 2px solid var(--gold); color: white; font-size: 32px; font-weight: bold; border-radius: 20px; cursor: pointer; }
+
+        /* OVERLAYS */
+        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 1000; padding: 30px; }
+        .btn-main { background: var(--gold); color: black; border: none; padding: 18px 50px; border-radius: 40px; font-weight: 900; font-size: 22px; margin-top: 30px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<audio id="audio-bg" src="nhac-nen.mp3" loop></audio>
+<audio id="audio-dung" src="dung.mp3"></audio>
+<audio id="audio-sai" src="sai.mp3"></audio>
+<audio id="audio-win" src="chien-thang.mp3"></audio>
+
+<div id="game-frame">
+    <div id="top-bar">
+        <div class="profile">
+            <div class="avatar"></div>
+            <div class="admin-info">
+                <div class="admin-name">LÊ MẠNH ĐÔNG</div>
+                <div class="hearts" id="heart-box">❤️❤️❤️</div>
+            </div>
+        </div>
+        <div style="color: var(--gold); font-weight: bold;">ĐIỂM: <span id="score">0</span></div>
+    </div>
+
+    <div id="forest-zone">
+        <div id="hero-basket">🐿️</div>
+    </div>
+
+    <div id="control-panel">
+        <div id="timer-bar"><div id="timer-fill"></div></div>
+        <div id="math-quest">-- + --</div>
+        <div class="ans-grid">
+            <button class="ans-btn" onclick="checkAns(this)"></button>
+            <button class="ans-btn" onclick="checkAns(this)"></button>
+            <button class="ans-btn" onclick="checkAns(this)"></button>
+        </div>
+    </div>
+
+    <div id="modal-start" class="overlay">
+        <h1 style="color: var(--gold); font-size: 45px;">LEVEL 9</h1>
+        <p>SÓC VỒ TÁO THẦN</p>
+        <button class="btn-main" onclick="initGame()">BẮT ĐẦU</button>
+    </div>
+
+    <div id="modal-win" class="overlay" style="display: none;">
+        <h1 style="color: var(--gold); font-size: 35px;">HOÀN THÀNH!</h1>
+        <p>Chúc mừng bạn đã vượt qua!</p>
+        <button class="btn-main" onclick="nextLevel()">SANG LEVEL 10</button>
+    </div>
+
+    <div id="modal-lose" class="overlay" style="display: none;">
+        <h1 style="color: var(--heart); font-size: 35px;">THẤT BẠI</h1>
+        <button class="btn-main" onclick="location.reload()">THỬ LẠI</button>
+    </div>
+</div>
+
+<script>
+    let lives = 3, score = 0, count = 0, currentAns = 0, gameActive = false, hang6Count = 0;
+    let timerWidth = 100;
+    let timerId;
+    const nextLvUrl = "lv10.html";
+
+    // TEST MODE
+    document.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 't') victory();
+        if (e.key.toLowerCase() === 'l') gameOver();
+    });
+
+    function playSnd(id) {
+        const s = document.getElementById(id);
+        if(s) { s.currentTime = 0; s.play().catch(()=>{}); }
+    }
+
+    function initGame() {
+        document.getElementById('modal-start').style.display = 'none';
+        gameActive = true;
+        playSnd('audio-bg');
+        newLevel();
+        startTimer();
+    }
+
+    function generateMath() {
+        let n1, n2, sum;
+        while(true) {
+            n1 = Math.floor(Math.random() * 55) + 5;
+            n2 = Math.floor(Math.random() * 55) + 5;
+            sum = n1 + n2;
+            if (sum >= 30 && sum <= 70 && (n1 % 10) + (n2 % 10) <= 9) {
+                if (n1 % 10 > 1 && n2 % 10 > 1) {
+                    let isHang6 = (sum >= 60 && sum < 70);
+                    if (hang6Count < 5) {
+                        if (isHang6) { hang6Count++; return [n1, n2]; }
+                    } else {
+                        if (!isHang6) return [n1, n2];
+                    }
+                }
+            }
+        }
+    }
+
+    function newLevel() {
+        if (count >= 10) { victory(); return; }
+        const [n1, n2] = generateMath();
+        currentAns = n1 + n2;
+        document.getElementById('math-quest').innerText = `${n1} + ${n2}`;
+        
+        let alt = [currentAns, currentAns + 10, currentAns - 2].sort(() => Math.random() - 0.5);
+        document.querySelectorAll('.ans-btn').forEach((b, i) => b.innerText = alt[i]);
+        
+        spawnApple();
+        timerWidth = 100;
+    }
+
+    function spawnApple() {
+        const zone = document.getElementById('forest-zone');
+        if (document.getElementById('active-apple')) document.getElementById('active-apple').remove();
+        const apple = document.createElement('div');
+        apple.className = 'magic-apple';
+        apple.id = 'active-apple';
+        apple.innerText = "🍎";
+        apple.style.left = Math.random() * (zone.offsetWidth - 120) + 60 + "px";
+        apple.style.top = "-100px";
+        zone.appendChild(apple);
+    }
+
+    function startTimer() {
+        timerId = setInterval(() => {
+            if (!gameActive) return;
+            timerWidth -= 0.6;
+            document.getElementById('timer-fill').style.width = timerWidth + "%";
+            const apple = document.getElementById('active-apple');
+            if (apple) apple.style.top = (100 - timerWidth) * 5 + "px";
+            if (timerWidth <= 0) {
+                lives--; updateHearts(); playSnd('audio-sai');
+                if (lives <= 0) gameOver(); else newLevel();
+            }
+        }, 100);
+    }
+
+    function checkAns(btn) {
+        if (!gameActive) return;
+        if (parseInt(btn.innerText) === currentAns) {
+            playSnd('audio-dung');
+            pounceEffect(); // Hiệu ứng Vồ táo
+            score += 250; count++;
+            document.getElementById('score').innerText = score;
+        } else {
+            lives--; playSnd('audio-sai'); updateHearts();
+            if (lives <= 0) gameOver();
+        }
+    }
+
+    function pounceEffect() {
+        const hero = document.getElementById('hero-basket');
+        const apple = document.getElementById('active-apple');
+        if (!apple) return;
+
+        const aRect = apple.getBoundingClientRect();
+        const fRect = document.getElementById('game-frame').getBoundingClientRect();
+
+        // 1. Sóc nhảy xổng vào mục tiêu
+        const targetX = (aRect.left + aRect.width/2 - fRect.left);
+        const targetY = (aRect.top - fRect.top);
+        
+        hero.style.left = targetX + "px";
+        hero.style.bottom = (fRect.height - targetY - 100) + "px"; // Nhảy lên cao
+        hero.style.transform = "translateX(-50%) rotate(20deg) scale(1.2)";
+
+        setTimeout(() => {
+            apple.innerText = "⭐";
+            apple.style.opacity = "0";
+            
+            // 2. Quay về vị trí bất kỳ dưới mặt đất
+            const randomX = Math.random() * (fRect.width - 100) + 50;
+            hero.style.left = randomX + "px";
+            hero.style.bottom = "30px"; // Về mặt đất
+            hero.style.transform = "translateX(-50%) rotate(0deg) scale(1)";
+            
+            setTimeout(newLevel, 500);
+        }, 300);
+    }
+
+    function updateHearts() { document.getElementById('heart-box').innerText = "❤️".repeat(lives); }
+    function victory() { gameActive = false; clearInterval(timerId); playSnd('audio-win'); document.getElementById('modal-win').style.display = 'flex'; }
+    function gameOver() { gameActive = false; clearInterval(timerId); document.getElementById('modal-lose').style.display = 'flex'; }
+    function nextLevel() { window.location.href = nextLvUrl; }
+</script>
+</body>
+</html>
