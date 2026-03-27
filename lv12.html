@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Level 12: Thunderbolt Storm - LÊ MẠNH ĐÔNG</title>
     <style>
-        :root { --radar-green: #00ff41; --bg-dark: #000800; --gold: #ffd700; --heart: #ff4d4d; --lightning: #fff; }
+        /* ĐỔI TÔNG MÀU SANG XANH CYAN ĐIỆN TỬ */
+        :root { --radar-color: #00f2ff; --bg-dark: #00080a; --gold: #ffd700; --heart: #ff4d4d; --lightning: #fff; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Share Tech Mono', monospace; overflow: hidden; color: var(--radar-green); }
+        body { background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Share Tech Mono', monospace; overflow: hidden; color: var(--radar-color); }
 
         #game-frame {
             width: 100vw; height: 100vh; max-width: 430px; max-height: 900px;
@@ -15,65 +16,64 @@
             border: 4px solid #111; border-radius: 40px;
         }
 
-        /* NGUYÊN TẮC 1: TOP BAR */
-        #top-bar { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.9); z-index: 100; border-bottom: 1px solid var(--radar-green); }
+        #top-bar { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.9); z-index: 100; border-bottom: 1px solid var(--radar-color); }
         .profile { display: flex; align-items: center; gap: 12px; }
-        
-        /* ĐÃ THÊM ẢNH AVATAR CỦA BẠN */
         .avatar { 
-            width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--radar-green); 
-            background: url('avatar.jpg') center/cover; /* Đảm bảo file ảnh tên avatar.jpg nằm cùng thư mục */
-            box-shadow: 0 0 10px var(--radar-green);
+            width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--radar-color); 
+            background: url('avatar.jpg') center/cover; 
+            box-shadow: 0 0 10px var(--radar-color);
         }
-        
-        .admin-name { font-weight: bold; font-size: 14px; color: var(--radar-green); }
+        .admin-name { font-weight: bold; font-size: 14px; color: var(--radar-color); }
         .hearts { color: var(--heart); font-size: 20px; }
 
-        /* TIẾN TRÌNH 20 CÂU */
         #progress-bar { position: absolute; top: 80px; width: 100%; height: 5px; background: #111; z-index: 90; }
         #progress-fill { width: 0%; height: 100%; background: var(--gold); transition: width 0.3s; }
 
         #play-area { flex-grow: 1; position: relative; z-index: 10; display: flex; justify-content: center; align-items: center; }
         
-        /* PHÉP TÍNH DỌC (LOCKED) */
+        /* PHÉP TÍNH: ĐÃ ĐƯA VÀO TÂM RADAR */
         #vertical-math {
-            position: absolute; top: 5%; width: 100%; display: flex; justify-content: center;
-            color: #fff; font-size: 48px; font-weight: 900; line-height: 1; text-align: right;
-            text-shadow: 0 0 15px var(--radar-green); z-index: 50;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); /* Giữa tâm tuyệt đối */
+            display: flex; flex-direction: column; align-items: flex-end;
+            color: #fff; font-size: 48px; font-weight: 900; line-height: 1.1;
+            text-shadow: 0 0 10px var(--radar-color), 0 0 20px #000;
+            z-index: 50; pointer-events: none;
         }
-        .math-container { position: relative; padding: 10px; min-width: 100px; }
-        .math-line { border-bottom: 5px solid #fff; margin-top: 5px; width: 120%; margin-left: -10%; }
-        .math-sign { position: absolute; left: -40px; bottom: 15px; font-size: 40px; }
+        .math-container { position: relative; padding: 10px; width: fit-content; }
+        .math-line { border-bottom: 5px solid #fff; margin-top: 5px; width: 120%; margin-left: -20%; }
+        .math-sign { position: absolute; left: -40px; bottom: 20px; font-size: 40px; }
 
         #radar-screen {
-            width: 320px; height: 320px; border: 2px solid var(--radar-green);
-            border-radius: 50%; position: relative; margin-top: 80px;
+            width: 320px; height: 320px; border: 2px solid var(--radar-color);
+            border-radius: 50%; position: relative;
             background: 
-                repeating-radial-gradient(circle, transparent 0, transparent 39px, rgba(0,255,65,0.1) 40px),
-                linear-gradient(90deg, transparent 49.5%, rgba(0,255,65,0.2) 50%, transparent 50.5%),
-                linear-gradient(0deg, transparent 49.5%, rgba(0,255,65,0.2) 50%, transparent 50.5%);
+                repeating-radial-gradient(circle, transparent 0, transparent 39px, rgba(0,242,255,0.1) 40px),
+                linear-gradient(90deg, transparent 49.5%, rgba(0,242,255,0.2) 50%, transparent 50.5%),
+                linear-gradient(0deg, transparent 49.5%, rgba(0,242,255,0.2) 50%, transparent 50.5%);
+            box-shadow: inset 0 0 30px rgba(0,242,255,0.1);
         }
 
         #radar-sweep {
             position: absolute; width: 50%; height: 50%; top: 0; left: 50%;
-            background: linear-gradient(0deg, transparent, rgba(0,255,65,0.5));
-            transform-origin: bottom left; animation: sweep 2.5s linear infinite; /* Nhanh hơn LV11 */
-            border-left: 1px solid var(--radar-green); z-index: 5;
+            background: linear-gradient(0deg, transparent, rgba(0,242,255,0.5));
+            transform-origin: bottom left; animation: sweep 2.5s linear infinite;
+            border-left: 1px solid var(--radar-color); z-index: 5;
         }
         @keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* ĐÁP ÁN (LOCKED) */
         .target-node {
             position: absolute; width: 75px; height: 75px;
-            border: 2px solid var(--radar-green); border-radius: 50%;
+            border: 2px solid var(--radar-color); border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             font-size: 28px; font-weight: bold; cursor: pointer;
-            background: rgba(0,255,65,0.1); z-index: 20;
-            transition: all 0.2s; color: var(--radar-green);
+            background: rgba(0,8,10,0.9); z-index: 60;
+            transition: all 0.2s; color: var(--radar-color);
         }
-        #ans-0 { top: -52px; left: 50%; transform: translateX(-50%); } 
-        #ans-1 { top: 75%; left: 85%; } 
-        #ans-2 { top: 75%; right: 85%; } 
+        /* VỊ TRÍ ĐÁP ÁN ĐÃ KHÓA CHẶT */
+        #ans-0 { top: -45px; left: 50%; transform: translateX(-50%); } 
+        #ans-1 { bottom: -15px; left: 85%; } 
+        #ans-2 { bottom: -15px; right: 85%; } 
 
         .target-node.hit {
             background: var(--lightning) !important; border-color: var(--gold) !important;
@@ -84,22 +84,22 @@
 
         #launcher {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 70px; height: 50px; border: 3px solid var(--radar-green);
-            background: repeating-linear-gradient(0deg, #111, #111 2px, var(--radar-green) 3px);
+            width: 70px; height: 50px; border: 3px solid var(--radar-color);
+            background: repeating-linear-gradient(0deg, #111, #111 2px, var(--radar-color) 3px);
             border-radius: 10px 10px 0 0; z-index: 30; display: flex; justify-content: center;
         }
         #launcher-tip { width: 14px; height: 22px; background: var(--lightning); transform: translateY(-12px); border-radius: 5px; box-shadow: 0 0 25px var(--lightning); }
 
-        #lightning-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 25; display: none; }
+        #lightning-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; display: none; }
         #lightning-path { stroke: var(--gold); stroke-width: 10; fill: none; stroke-linecap: round; filter: blur(1px); }
         #lightning-path-inner { stroke: #fff; stroke-width: 4; fill: none; }
 
-        #control-panel { background: #000; padding: 20px; border-top: 1px solid var(--radar-green); }
+        #control-panel { background: #000; padding: 20px; border-top: 1px solid var(--radar-color); }
         #timer-bar { width: 100%; height: 12px; background: #111; border-radius: 6px; overflow: hidden; }
-        #timer-fill { width: 100%; height: 100%; background: var(--radar-green); transition: width 0.1s linear; }
+        #timer-fill { width: 100%; height: 100%; background: var(--radar-color); transition: width 0.1s linear; }
 
-        .overlay { position: absolute; inset: 0; background: rgba(0,8,0,0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; text-align: center; padding: 20px; }
-        .btn-main { background: var(--radar-green); color: black; border: none; padding: 18px 50px; font-weight: 900; cursor: pointer; font-family: inherit; font-size: 20px; border-radius: 5px; text-transform: uppercase; }
+        .overlay { position: absolute; inset: 0; background: rgba(0,8,10,0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; text-align: center; padding: 20px; }
+        .btn-main { background: var(--radar-color); color: black; border: none; padding: 18px 50px; font-weight: 900; cursor: pointer; font-family: inherit; font-size: 20px; border-radius: 5px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -121,16 +121,17 @@
     <div id="progress-bar"><div id="progress-fill"></div></div>
 
     <div id="play-area">
-        <div id="vertical-math">
-            <div class="math-container">
-                <div id="num1">--</div>
-                <div id="num2">--</div>
-                <div class="math-sign">+</div>
-                <div class="math-line"></div>
-            </div>
-        </div>
-
         <div id="radar-screen">
+            <!-- PHÉP TÍNH Ở TRONG TÂM RADAR -->
+            <div id="vertical-math">
+                <div class="math-container">
+                    <div id="num1">--</div>
+                    <div id="num2">--</div>
+                    <div class="math-sign">+</div>
+                    <div class="math-line"></div>
+                </div>
+            </div>
+
             <div id="radar-sweep"></div>
             <div id="ans-0" class="target-node"></div>
             <div id="ans-1" class="target-node"></div>
@@ -148,7 +149,7 @@
 
     <!-- MODALS -->
     <div id="modal-start" class="overlay">
-        <h1 style="font-size: 36px; color: var(--radar-green); margin-bottom: 10px;">LEVEL 12</h1>
+        <h1 style="font-size: 36px; color: var(--radar-color); margin-bottom: 10px;">LEVEL 12</h1>
         <h2 style="color: var(--gold); margin-bottom: 20px;">THUNDERBOLT STORM</h2>
         <p style="color: #fff; margin-bottom: 30px;">20 NHIỆM VỤ | TỔNG CẬN 99</p>
         <button class="btn-main" onclick="initGame()">BẮT ĐẦU CÔNG PHÁ</button>
@@ -157,7 +158,7 @@
     <div id="modal-win" class="overlay" style="display:none">
         <h1 style="color: var(--gold); font-size: 35px;">NHIỆM VỤ HOÀN THÀNH!</h1>
         <p style="margin: 20px 0; font-size: 18px;">Bạn là bậc thầy Radar!</p>
-        <button class="btn-main" onclick="nextLevel()">LUYỆN TẬP TIẾP</button>
+        <button class="btn-main" onclick="nextLevel()">TIẾP THEO</button>
     </div>
 
     <div id="modal-lose" class="overlay" style="display:none">
@@ -171,7 +172,6 @@
     let questionBank = [];
     const totalQuestions = 20;
 
-    // NGUYÊN TẮC 4: DEV MODE
     document.addEventListener('keydown', (e) => {
         if (!gameActive) return;
         if (e.key.toLowerCase() === 't') victory();
@@ -183,13 +183,12 @@
         if(s) { s.currentTime = 0; s.play().catch(()=>{}); } 
     }
 
-    // NGUYÊN TẮC 7: LOGIC TOÁN HỌC KHÔNG NHỚ 50-99
     function prepareQuestions() {
         let poolNormal = [], poolUltra = [];
         for (let i = 20; i <= 89; i++) {
             for (let j = 10; j <= 79; j++) {
                 let sum = i + j;
-                if (i % 10 + j % 10 <= 9) { // Không nhớ
+                if (i % 10 + j % 10 <= 9) {
                     if (sum >= 50 && sum <= 89) poolNormal.push({ n1: i, n2: j, ans: sum });
                     if (sum >= 90 && sum <= 99) poolUltra.push({ n1: i, n2: j, ans: sum });
                 }
@@ -197,8 +196,6 @@
         }
         poolNormal.sort(() => Math.random() - 0.5);
         poolUltra.sort(() => Math.random() - 0.5);
-        
-        // Lấy 15 câu bình thường và 5 câu đỉnh cao 90-99
         questionBank = [...poolNormal.slice(0, 15), ...poolUltra.slice(0, 5)];
     }
 
@@ -206,7 +203,6 @@
         prepareQuestions();
         document.getElementById('modal-start').style.display = 'none';
         gameActive = true;
-        // NGUYÊN TẮC 3: NHẠC NỀN 2 (10%)
         const bg = document.getElementById('audio-bg-2');
         bg.volume = 0.1; bg.play().catch(()=>{});
         newLevel();
@@ -217,25 +213,16 @@
         if (count >= totalQuestions) { victory(); return; }
         const q = questionBank[count];
         currentAns = q.ans;
-        
-        // Cập nhật tiến trình
         document.getElementById('progress-fill').style.width = (count / totalQuestions * 100) + "%";
-        
-        // Hiển thị số dọc
         document.getElementById('num1').innerText = q.n1;
         document.getElementById('num2').innerText = q.n2;
         
         let answers = [q.ans, q.ans + 1, q.ans - 1].sort(() => Math.random() - 0.5);
-        // Đảm bảo không có đáp án âm hoặc quá 100
-        answers = answers.map(v => v > 99 ? v - 3 : (v < 10 ? v + 5 : v));
-
         for(let i=0; i<3; i++) {
             const el = document.getElementById(`ans-${i}`);
             el.innerText = answers[i];
             el.classList.remove('hit', 'wrong');
             el.style.opacity = "1";
-            el.style.background = "rgba(0,255,65,0.1)";
-            el.style.color = "var(--radar-green)";
             el.onclick = (e) => fireLightning(e, answers[i]);
         }
         timerWidth = 100;
@@ -259,7 +246,7 @@
             const eY = targetRect.top + targetRect.height / 2 - frameRect.top;
 
             let d = `M ${sX} ${sY}`;
-            for(let i=1; i<=10; i++) { // Tia sét phức tạp hơn
+            for(let i=1; i<=10; i++) {
                 d += ` L ${sX + (eX-sX)*i/10 + (Math.random()-0.5)*50} ${sY + (eY-sY)*i/10 + (Math.random()-0.5)*25}`;
             }
             d += ` L ${eX} ${eY}`;
@@ -287,7 +274,6 @@
         if (timerId) clearInterval(timerId);
         timerId = setInterval(() => {
             if (!gameActive) return;
-            // Tốc độ giảm dần khi càng về sau (tổng 20 câu nên cần cân bằng)
             timerWidth -= (count > 15 ? 0.8 : 0.6); 
             document.getElementById('timer-fill').style.width = timerWidth + "%";
             if (timerWidth <= 0) {
@@ -300,7 +286,7 @@
     function updateHearts() { document.getElementById('heart-box').innerText = "❤️".repeat(lives); }
     function victory() { gameActive = false; clearInterval(timerId); playSnd('audio-win'); document.getElementById('modal-win').style.display = 'flex'; }
     function gameOver() { gameActive = false; clearInterval(timerId); document.getElementById('modal-lose').style.display = 'flex'; }
-    function nextLevel() { window.location.href = "level1.html"; }
+    function nextLevel() { window.location.href = "level13.html"; }
 </script>
 </body>
 </html>
