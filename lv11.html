@@ -17,30 +17,37 @@
 
         #top-bar { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.9); z-index: 100; border-bottom: 1px solid var(--radar-green); }
         .profile { display: flex; align-items: center; gap: 12px; }
-        /* ĐÃ THÊM ẢNH AVATAR */
-        .avatar { 
-            width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--radar-green); 
-            background: url('avatar.jpg') center/cover; /* Đảm bảo file avatar.jpg cùng thư mục */
-            box-shadow: 0 0 10px var(--radar-green);
-        }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--radar-green); background: url('avatar.jpg') center/cover; box-shadow: 0 0 10px var(--radar-green); }
         .admin-name { font-weight: bold; font-size: 14px; color: var(--radar-green); }
         .hearts { color: var(--heart); font-size: 20px; }
 
         #play-area { flex-grow: 1; position: relative; z-index: 10; display: flex; justify-content: center; align-items: center; }
         
-        /* PHÉP TÍNH DỌC */
+        /* PHÉP TÍNH: ĐÃ CĂN CHỈNH VÀO GIỮA RADAR */
         #vertical-math {
-            position: absolute; top: 5%; width: 100%; display: flex; justify-content: center;
-            color: #fff; font-size: 45px; font-weight: 900; line-height: 1; text-align: right;
-            text-shadow: 0 0 10px var(--radar-green); z-index: 50;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Căn giữa tuyệt đối trong radar-screen */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            color: #fff;
+            font-size: 45px;
+            font-weight: 900;
+            line-height: 1.1;
+            text-shadow: 0 0 10px var(--radar-green), 0 0 20px #000;
+            z-index: 50;
+            pointer-events: none;
         }
-        .math-container { position: relative; padding: 10px; }
-        .math-line { border-bottom: 4px solid #fff; margin-top: 5px; width: 110%; margin-left: -10%; }
-        .math-sign { position: absolute; left: -35px; bottom: 15px; font-size: 35px; }
+
+        .math-container { position: relative; padding: 10px; width: fit-content; }
+        .math-line { border-bottom: 4px solid #fff; margin-top: 5px; width: 120%; margin-left: -20%; }
+        .math-sign { position: absolute; left: -35px; bottom: 20px; font-size: 35px; }
 
         #radar-screen {
             width: 320px; height: 320px; border: 2px solid var(--radar-green);
-            border-radius: 50%; position: relative; margin-top: 60px;
+            border-radius: 50%; position: relative;
             background: 
                 repeating-radial-gradient(circle, transparent 0, transparent 39px, rgba(0,255,65,0.15) 40px),
                 linear-gradient(90deg, transparent 49.5%, rgba(0,255,65,0.2) 50%, transparent 50.5%),
@@ -60,36 +67,26 @@
             border: 2px solid var(--radar-green); border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             font-size: 28px; font-weight: bold; cursor: pointer;
-            background: rgba(0,255,65,0.1); z-index: 20;
+            background: rgba(0,8,0,0.85); z-index: 60;
             transition: all 0.2s; color: var(--radar-green);
         }
-        #ans-0 { top: -52px; left: 50%; transform: translateX(-50%); } 
-        #ans-1 { top: 75%; left: 85%; } 
-        #ans-2 { top: 75%; right: 85%; } 
+        #ans-0 { top: -45px; left: 50%; transform: translateX(-50%); } 
+        #ans-1 { bottom: -10px; left: 85%; } 
+        #ans-2 { bottom: -10px; right: 85%; } 
 
-        .target-node.hit {
-            background: var(--lightning) !important; border-color: var(--gold) !important;
-            color: #000 !important; box-shadow: 0 0 40px var(--gold); transform: scale(1.2);
-        }
+        .target-node.hit { background: var(--lightning) !important; border-color: var(--gold) !important; color: #000 !important; box-shadow: 0 0 40px var(--gold); transform: scale(1.2); }
         #ans-0.hit { transform: translateX(-50%) scale(1.2) !important; }
         .target-node.wrong { background: rgba(255, 77, 77, 0.4) !important; border-color: var(--heart) !important; }
 
-        #launcher {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 70px; height: 50px; border: 3px solid var(--radar-green);
-            background: repeating-linear-gradient(0deg, #111, #111 2px, var(--radar-green) 3px);
-            border-radius: 10px 10px 0 0; z-index: 30; display: flex; justify-content: center;
-        }
+        #launcher { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 70px; height: 50px; border: 3px solid var(--radar-green); background: repeating-linear-gradient(0deg, #111, #111 2px, var(--radar-green) 3px); border-radius: 10px 10px 0 0; z-index: 30; display: flex; justify-content: center; }
         #launcher-tip { width: 12px; height: 20px; background: var(--lightning); transform: translateY(-12px); border-radius: 5px; box-shadow: 0 0 20px var(--lightning); }
-
-        #lightning-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 25; display: none; }
+        #lightning-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; display: none; }
         #lightning-path { stroke: var(--gold); stroke-width: 8; fill: none; stroke-linecap: round; filter: blur(1px); }
         #lightning-path-inner { stroke: #fff; stroke-width: 3; fill: none; }
 
         #control-panel { background: #000; padding: 20px; border-top: 1px solid var(--radar-green); }
         #timer-bar { width: 100%; height: 10px; background: #111; border-radius: 5px; overflow: hidden; }
         #timer-fill { width: 100%; height: 100%; background: var(--radar-green); transition: width 0.1s linear; }
-
         .overlay { position: absolute; inset: 0; background: rgba(0,8,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; text-align: center; }
         .btn-main { background: var(--radar-green); color: black; border: none; padding: 15px 40px; font-weight: 900; cursor: pointer; font-family: inherit; font-size: 18px; }
     </style>
@@ -111,16 +108,17 @@
     </div>
 
     <div id="play-area">
-        <div id="vertical-math">
-            <div class="math-container">
-                <div id="num1">--</div>
-                <div id="num2">--</div>
-                <div class="math-sign">+</div>
-                <div class="math-line"></div>
-            </div>
-        </div>
-
         <div id="radar-screen">
+            <!-- ĐÃ CHUYỂN PHÉP TÍNH VÀO TRONG NÀY ĐỂ TÂM CHÍNH XÁC -->
+            <div id="vertical-math">
+                <div class="math-container">
+                    <div id="num1">--</div>
+                    <div id="num2">--</div>
+                    <div class="math-sign">+</div>
+                    <div class="math-line"></div>
+                </div>
+            </div>
+
             <div id="radar-sweep"></div>
             <div id="ans-0" class="target-node"></div>
             <div id="ans-1" class="target-node"></div>
@@ -141,7 +139,7 @@
         <p style="margin: 15px 0; color: #fff;">BẮN SÉT TỔNG 80-90</p>
         <button class="btn-main" onclick="initGame()">KÍCH HOẠT</button>
     </div>
-
+    <!-- ... Giữ nguyên các modal win/lose và script ... -->
     <div id="modal-win" class="overlay" style="display:none">
         <h1 id="win-text" style="color: var(--gold); font-size: 35px;"></h1>
         <button class="btn-main" style="margin-top:20px" onclick="nextLevel()">SANG LEVEL 12</button>
@@ -158,7 +156,6 @@
     let questionBank = [];
     const compliments = ["Quá xuất sắc!", "Giỏi quá!", "Bạn thật thông minh!", "Tuyệt vời!"];
 
-    // HIỆU ỨNG TEST THẮNG NHANH (T) VÀ THUA NHANH (L)
     document.addEventListener('keydown', (e) => {
         if (!gameActive) return;
         if (e.key.toLowerCase() === 't') victory();
@@ -197,10 +194,8 @@
         if (count >= 10) { victory(); return; }
         const q = questionBank[count];
         currentAns = q.ans;
-        
         document.getElementById('num1').innerText = q.n1;
         document.getElementById('num2').innerText = q.n2;
-        
         let answers = [q.ans, q.ans + 1, q.ans - 1].sort(() => Math.random() - 0.5);
         for(let i=0; i<3; i++) {
             const el = document.getElementById(`ans-${i}`);
@@ -216,30 +211,23 @@
         if (!gameActive) return;
         const target = e.currentTarget;
         const svg = document.getElementById('lightning-svg');
-        
         if (val === currentAns) {
             gameActive = false;
             playSnd('audio-dung');
             const frameRect = document.getElementById('game-frame').getBoundingClientRect();
             const launchRect = document.getElementById('launcher-tip').getBoundingClientRect();
             const targetRect = target.getBoundingClientRect();
-            
             const sX = launchRect.left + launchRect.width / 2 - frameRect.left;
             const sY = launchRect.top - frameRect.top;
             const eX = targetRect.left + targetRect.width / 2 - frameRect.left;
             const eY = targetRect.top + targetRect.height / 2 - frameRect.top;
-
             let d = `M ${sX} ${sY}`;
-            for(let i=1; i<=8; i++) {
-                d += ` L ${sX + (eX-sX)*i/8 + (Math.random()-0.5)*40} ${sY + (eY-sY)*i/8 + (Math.random()-0.5)*20}`;
-            }
+            for(let i=1; i<=8; i++) { d += ` L ${sX + (eX-sX)*i/8 + (Math.random()-0.5)*40} ${sY + (eY-sY)*i/8 + (Math.random()-0.5)*20}`; }
             d += ` L ${eX} ${eY}`;
-            
             document.getElementById('lightning-path').setAttribute('d', d);
             document.getElementById('lightning-path-inner').setAttribute('d', d);
             svg.style.display = "block";
             target.classList.add('hit');
-
             setTimeout(() => {
                 svg.style.display = "none";
                 target.style.opacity = "0";
@@ -260,28 +248,15 @@
             timerWidth -= 0.6;
             document.getElementById('timer-fill').style.width = timerWidth + "%";
             if (timerWidth <= 0) { 
-                lives--; 
-                updateHearts(); 
-                playSnd('audio-sai'); 
+                lives--; updateHearts(); playSnd('audio-sai'); 
                 if (lives <= 0) gameOver(); 
                 else { count++; newLevel(); } 
             }
         }, 100);
     }
-
     function updateHearts() { document.getElementById('heart-box').innerText = "❤️".repeat(lives); }
-    function victory() { 
-        gameActive = false; 
-        clearInterval(timerId); 
-        playSnd('audio-win'); 
-        document.getElementById('win-text').innerText = compliments[Math.floor(Math.random()*compliments.length)]; 
-        document.getElementById('modal-win').style.display = 'flex'; 
-    }
-    function gameOver() { 
-        gameActive = false; 
-        clearInterval(timerId); 
-        document.getElementById('modal-lose').style.display = 'flex'; 
-    }
+    function victory() { gameActive = false; clearInterval(timerId); playSnd('audio-win'); document.getElementById('win-text').innerText = compliments[Math.floor(Math.random()*compliments.length)]; document.getElementById('modal-win').style.display = 'flex'; }
+    function gameOver() { gameActive = false; clearInterval(timerId); document.getElementById('modal-lose').style.display = 'flex'; }
     function nextLevel() { window.location.href = "lv12.html"; }
 </script>
 </body>
