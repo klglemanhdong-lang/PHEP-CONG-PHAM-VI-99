@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thunderbolt Math - Cổng Chọn Cấp Độ</title>
+    <style>
+        :root {
+            --radar-color: #00f2ff;
+            --bg-dark: #000a0f;
+            --gold: #ffd700;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0; padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+            color: var(--radar-color);
+        }
+
+        #menu-frame {
+            width: 100vw;
+            height: 100vh;
+            max-width: 430px;
+            background: var(--bg-dark);
+            border: 2px solid #111;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Hiệu ứng lưới điện tử nền */
+        #menu-frame::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(var(--radar-color) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--radar-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.05;
+            z-index: 1;
+        }
+
+        .header-area {
+            z-index: 10;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 32px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px var(--radar-color);
+            margin-bottom: 5px;
+        }
+
+        .sub-title {
+            color: #fff;
+            font-size: 12px;
+            letter-spacing: 3px;
+            opacity: 0.8;
+        }
+
+        .btn-group {
+            width: 100%;
+            max-width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .level-link {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 25px;
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid var(--radar-color);
+            border-radius: 12px;
+            color: var(--radar-color);
+            font-size: 20px;
+            font-weight: 900;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
+        }
+
+        .level-link span {
+            font-size: 10px;
+            color: #fff;
+            font-weight: normal;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Hiệu ứng khi nhấn trên điện thoại */
+        .level-link:active {
+            background: var(--radar-color);
+            color: #000;
+            transform: scale(0.96);
+            box-shadow: 0 0 30px var(--radar-color);
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 30px;
+            font-size: 11px;
+            color: #555;
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+<div id="menu-frame">
+    <div class="header-area">
+        <h1>COMMAND</h1>
+        <div class="sub-title">CHỌN CẤP ĐỘ TRUY CẬP</div>
+    </div>
+
+    <div class="btn-group">
+        <a href="lv1.html" class="level-link">
+            LEVEL 1
+            <span>Cấp độ tập sự</span>
+        </a>
+
+        <a href="lv5.html" class="level-link">
+            LEVEL 5
+            <span>Cấp độ chuyên gia</span>
+        </a>
+
+        <a href="lv8.html" class="level-link">
+            LEVEL 8
+            <span>Cấp độ huyền thoại</span>
+        </a>
+    </div>
+
+    <div class="footer">ADMIN: LÊ MẠNH ĐÔNG</div>
+</div>
+
+<script>
+    // Hiệu ứng load nhẹ nhàng
+    window.addEventListener('load', () => {
+        document.body.style.opacity = '0';
+        setTimeout(() => {
+            document.body.style.transition = 'opacity 0.6s ease';
+            document.body.style.opacity = '1';
+        }, 50);
+    });
+</script>
+
+</body>
+</html>
